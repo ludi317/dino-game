@@ -8,8 +8,8 @@ use rand_core::RngCore;
 
 //region Constants
 const GAME_SPEED: f32 = 400.0;
-const JUMP_FORCE: f32 = 600.0;
-const GRAVITY: f32 = -1000.0;
+const JUMP_FORCE: f32 = 1000.0;
+const GRAVITY: f32 = -4000.0;
 const PLAYER_X: f32 = -300.0;
 const PLAYER_SIZE: Vec2 = Vec2::new(30.0, 50.0);
 const PLAYER_COLOR: Color = Color::srgb(0.5, 1.0, 0.5);
