@@ -1,3 +1,4 @@
+use bevy::input::ButtonState;
 use crate::GameState::{GameOver, InGame};
 use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
@@ -41,6 +42,9 @@ struct Health(usize);
 #[derive(Component)]
 struct HealthInfo;
 
+#[derive(Component)]
+struct OriginalSize(Vec2);
+
 #[derive(Resource)]
 struct ObstacleSpawningTimer(Timer);
 
@@ -59,7 +63,7 @@ fn main() {
         .insert_resource(ObstacleSpawningTimer(
             Timer::from_seconds(SPAWN_INTERVAL, TimerMode::Repeating)))
         .insert_state(InGame)
-        .add_systems(Update, (jump, apply_gravity, player_movement)
+        .add_systems(Update, (jump, apply_gravity, player_movement, crouch)
             .run_if(in_state(InGame)))
         .add_systems(Update, (spawn_obstacles, move_obstacles, detect_collision, render_health_info, check_health)
             .run_if(in_state(InGame)))
@@ -84,7 +88,8 @@ fn setup(mut commands: Commands) {
             },
             Transform::from_xyz(PLAYER_X, GROUND_LEVEL, 0.0),
             Velocity(Vec3::ZERO),
-            Health(initial_health)
+            Health(initial_health),
+            OriginalSize(PLAYER_SIZE),
         ));
 
     commands.spawn((
@@ -178,20 +183,32 @@ fn move_obstacles(
 
 fn detect_collision(
     mut commands: Commands,
-    mut player_query: Query<(&Transform, &mut Health), With<Player>>,
-    obstacle_query: Query<(Entity, &Transform), With<Obstacle>>,
+    mut player_query: Query<(&Transform, &mut Health, &Sprite), With<Player>>,
+    obstacle_query: Query<(Entity, &Transform, &Sprite), With<Obstacle>>,
 ) {
-    if let Ok((player_transform, mut health)) = player_query.get_single_mut() {
-        for (entity, obstacle_transform) in obstacle_query.iter() {
-            let collision = player_transform.translation.distance(obstacle_transform.translation) < 50.0;
-            if collision {
+    if let Ok((player_transform, mut health, player_sprite)) = player_query.get_single_mut() {
+        let player_size = player_sprite.custom_size.unwrap_or(PLAYER_SIZE);
+        let player_half_width = player_size.x / 2.0;
+        let player_half_height = player_size.y / 2.0;
+
+        for (entity, obstacle_transform, obstacle_sprite) in obstacle_query.iter() {
+            let obstacle_size = obstacle_sprite.custom_size.unwrap_or(OBSTACLE_SIZE);
+            let obstacle_half_width = obstacle_size.x / 2.0;
+            let obstacle_half_height = obstacle_size.y / 2.0;
+
+            // Check for AABB collision
+            let collision_x = (player_transform.translation.x - obstacle_transform.translation.x).abs()
+                <= (player_half_width + obstacle_half_width);
+            let collision_y = (player_transform.translation.y - obstacle_transform.translation.y).abs()
+                <= (player_half_height + obstacle_half_height);
+
+            if collision_x && collision_y {
                 health.0 -= 1;
-                commands.entity(entity).despawn(); // Remove obstacle
+                commands.entity(entity).despawn();
             }
         }
     }
 }
-
 fn check_health(
     player_query: Query<&Health, With<Player>>,
     mut game_state: ResMut<NextState<GameState>>
@@ -199,6 +216,27 @@ fn check_health(
     if let Ok(Health(health)) = player_query.get_single() {
         if *health == 0 {
             game_state.set(GameOver);
+        }
+    }
+}
+
+fn crouch(
+    mut events: EventReader<KeyboardInput>,
+    mut player_query: Query<(&mut Sprite, &OriginalSize), With<Player>>,
+) {
+    for e in events.read() {
+        if let Ok((mut sprite, original_size)) = player_query.get_single_mut() {
+            if e.state.is_pressed() && e.key_code == KeyCode::ArrowDown {
+                // Reduce the player's height to half its original size
+                let new_height = original_size.0.y / 2.0;
+                if let Some(size) = sprite.custom_size {
+                    if size.y > new_height {
+                        sprite.custom_size = Some(Vec2::new(size.x, new_height));
+                    }
+                }
+            } else if e.state == ButtonState::Released && e.key_code == KeyCode::ArrowDown {
+                sprite.custom_size = Some(original_size.0);
+            }
         }
     }
 }
