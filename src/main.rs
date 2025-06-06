@@ -9,18 +9,24 @@ use rand_core::RngCore;
 
 //region Constants
 const GAME_SPEED: f32 = 400.0;
-const JUMP_FORCE: f32 = 1000.0;
+const JUMP_FORCE: f32 = 2000.0;
 const GRAVITY: f32 = -4000.0;
 const PLAYER_X: f32 = -300.0;
 const PLAYER_SIZE: Vec2 = Vec2::new(30.0, 50.0);
 const PLAYER_COLOR: Color = Color::srgb(0.5, 1.0, 0.5);
-const SPAWN_INTERVAL: f32 = 1.0;
-const GROUND_LEVEL: f32 = -100.0;
+const SPAWN_INTERVAL: f32 = 1.5;
+const GROUND_LEVEL: f32 = -200.0;
 const GROUND_SIZE: Vec2 = Vec2::new(800.0, 10.0);
 const GROUND_EDGE: f32 = GROUND_SIZE.x / 2.0;
 const GROUND_COLOR: Color = Color::srgb(0.5, 0.5, 0.5);
 const OBSTACLE_SIZE: Vec2 = Vec2::new(30.0, 30.0);
 const OBSTACLE_COLOR: Color = Color::srgb(1.0, 0.0, 0.0);
+const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(30.0, 30.0);
+const HEALTH_PICKUP_COLOR: Color = Color::srgb(0.0, 1.0, 0.0);
+const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.3; // 30% chance to spawn instead of obstacle
+
+#[derive(Component)]
+struct HealthPickup;
 //endregion
 
 //region Components, resources, and states
@@ -37,6 +43,9 @@ struct Obstacle;
 struct GameOverText;
 
 #[derive(Component)]
+struct PauseText;
+
+#[derive(Component)]
 struct Health(usize);
 
 #[derive(Component)]
@@ -51,9 +60,21 @@ struct ObstacleSpawningTimer(Timer);
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
 enum GameState {
     InGame,
+    Paused,
     GameOver,
 }
 //endregion
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
+pub fn run() {
+    #[cfg(target_arch = "wasm32")]
+    console_error_panic_hook::set_once();
+
+    main();
+}
 
 fn main() {
     App::new()
@@ -65,6 +86,9 @@ fn main() {
         .insert_state(InGame)
         .add_systems(Update, (jump, apply_gravity, player_movement, crouch)
             .run_if(in_state(InGame)))
+        .add_systems(Update, toggle_pause)
+        .add_systems(OnEnter(GameState::Paused), show_pause_text)
+        .add_systems(OnExit(GameState::Paused), hide_pause_text)
         .add_systems(Update, (spawn_obstacles, move_obstacles, detect_collision, render_health_info, check_health)
             .run_if(in_state(InGame)))
         .add_systems(OnEnter(GameOver), game_over)
@@ -75,7 +99,7 @@ fn main() {
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2d::default());
 
-    let initial_health = 3;
+    let initial_health = 99;
     // Player
     commands
         .spawn((
@@ -116,7 +140,7 @@ fn jump(
 ) {
     for e in events.read() {
         if let Ok((mut velocity, transform)) = query.get_single_mut() {
-            if e.state.is_pressed() && e.key_code == KeyCode::Space && transform.translation.y <= GROUND_LEVEL {
+            if e.state.is_pressed() && (e.key_code == KeyCode::Space || e.key_code == KeyCode::ArrowUp) && transform.translation.y <= GROUND_LEVEL {
                 velocity.0.y = JUMP_FORCE;
             }
         }
@@ -152,62 +176,170 @@ fn spawn_obstacles(
     spawn_timer.0.tick(time.delta());
     if spawn_timer.0.finished() {
         let obstacle_x = GROUND_EDGE;
-        let obstacle_y = GROUND_LEVEL + (rng.next_u32() % 50) as f32;
-        commands.spawn((
-            Obstacle,
-            Sprite {
-                color: OBSTACLE_COLOR,
-                custom_size: Some(OBSTACLE_SIZE),
-                anchor: Anchor::BottomCenter,
-                ..default()
-            },
-            Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
-        ));
+        let obstacle_y = GROUND_LEVEL;
+
+        // Randomly decide whether to spawn obstacle or health pickup
+        if rng.next_u32() % 100 < (HEALTH_PICKUP_SPAWN_CHANCE * 100.0) as u32 {
+            // Spawn health pickup
+            commands.spawn((
+                HealthPickup,
+                Sprite {
+                    color: HEALTH_PICKUP_COLOR,
+                    custom_size: Some(HEALTH_PICKUP_SIZE),
+                    anchor: Anchor::BottomCenter,
+                    ..default()
+                },
+                Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
+            ));
+        } else {
+            // Spawn obstacle
+            commands.spawn((
+                Obstacle,
+                Sprite {
+                    color: OBSTACLE_COLOR,
+                    custom_size: Some(OBSTACLE_SIZE),
+                    anchor: Anchor::BottomCenter,
+                    ..default()
+                },
+                Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
+            ));
+        }
     }
 }
+
+fn toggle_pause(
+    mut events: EventReader<KeyboardInput>,
+    game_state: Res<State<GameState>>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    for e in events.read() {
+        if e.state.is_pressed() && e.key_code == KeyCode::KeyP {
+            match game_state.get() {
+                InGame => next_state.set(GameState::Paused),
+                GameState::Paused => next_state.set(InGame),
+                _ => {} // Don't toggle pause from other states
+            }
+        }
+    }
+}
+
+
+
+fn show_pause_text(mut commands: Commands) {
+    commands.spawn((Node {
+        position_type: PositionType::Absolute,
+        left: Val::Percent(10.),
+        right: Val::Percent(10.),
+        top: Val::Percent(15.),
+        bottom: Val::Percent(15.),
+        justify_content: JustifyContent::Center,
+        ..default()
+    },))
+        .with_children(|builder| {
+            builder.spawn((
+                Text("You have paused the game".to_string()),
+                TextFont::from_font_size(9.0),
+                TextLayout::new_with_justify(JustifyText::Center).with_no_wrap(),
+                TextColor(Color::srgb(0.0, 0.5, 0.5)),
+                PauseText,
+            ));
+        });
+}
+
+fn hide_pause_text(mut commands: Commands, query: Query<Entity, With<PauseText>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
+    }
+}
+
 
 fn move_obstacles(
     time: Res<Time>,
     mut commands: Commands,
-    mut query: Query<(Entity, &mut Transform), With<Obstacle>>,
+    mut transforms: ParamSet<(
+        Query<(Entity, &mut Transform), With<Obstacle>>,
+        Query<(Entity, &mut Transform), With<HealthPickup>>,
+    )>,
 ) {
-    for (entity, mut transform) in query.iter_mut() {
+    // Move obstacles
+    for (entity, mut transform) in transforms.p0().iter_mut() {
         transform.translation.x -= GAME_SPEED * time.delta_secs();
+        if transform.translation.x < -GROUND_EDGE {
+            commands.entity(entity).despawn();
+        }
+    }
 
-        // Remove obstacles once they're off-screen
+    // Move health pickups
+    for (entity, mut transform) in transforms.p1().iter_mut() {
+        transform.translation.x -= GAME_SPEED * time.delta_secs();
         if transform.translation.x < -GROUND_EDGE {
             commands.entity(entity).despawn();
         }
     }
 }
-
 fn detect_collision(
     mut commands: Commands,
     mut player_query: Query<(&Transform, &mut Health, &Sprite), With<Player>>,
     obstacle_query: Query<(Entity, &Transform, &Sprite), With<Obstacle>>,
+    health_pickup_query: Query<(Entity, &Transform, &Sprite), With<HealthPickup>>,
 ) {
     if let Ok((player_transform, mut health, player_sprite)) = player_query.get_single_mut() {
         let player_size = player_sprite.custom_size.unwrap_or(PLAYER_SIZE);
         let player_half_width = player_size.x / 2.0;
         let player_half_height = player_size.y / 2.0;
 
+        // Check collision with obstacles
         for (entity, obstacle_transform, obstacle_sprite) in obstacle_query.iter() {
             let obstacle_size = obstacle_sprite.custom_size.unwrap_or(OBSTACLE_SIZE);
             let obstacle_half_width = obstacle_size.x / 2.0;
             let obstacle_half_height = obstacle_size.y / 2.0;
 
-            // Check for AABB collision
-            let collision_x = (player_transform.translation.x - obstacle_transform.translation.x).abs()
-                <= (player_half_width + obstacle_half_width);
-            let collision_y = (player_transform.translation.y - obstacle_transform.translation.y).abs()
-                <= (player_half_height + obstacle_half_height);
+            if is_colliding(
+                player_transform.translation,
+                player_half_width,
+                player_half_height,
+                obstacle_transform.translation,
+                obstacle_half_width,
+                obstacle_half_height,
+            ) {
+                health.0 = health.0.saturating_sub(1);
+                commands.entity(entity).despawn();
+            }
+        }
 
-            if collision_x && collision_y {
-                health.0 -= 1;
+        // Check collision with health pickups
+        for (entity, pickup_transform, pickup_sprite) in health_pickup_query.iter() {
+            let pickup_size = pickup_sprite.custom_size.unwrap_or(HEALTH_PICKUP_SIZE);
+            let pickup_half_width = pickup_size.x / 2.0;
+            let pickup_half_height = pickup_size.y / 2.0;
+
+            if is_colliding(
+                player_transform.translation,
+                player_half_width,
+                player_half_height,
+                pickup_transform.translation,
+                pickup_half_width,
+                pickup_half_height,
+            ) {
+                health.0 = health.0.saturating_add(1);
                 commands.entity(entity).despawn();
             }
         }
     }
+}
+
+// Helper function for collision detection
+fn is_colliding(
+    pos1: Vec3,
+    half_width1: f32,
+    half_height1: f32,
+    pos2: Vec3,
+    half_width2: f32,
+    half_height2: f32,
+) -> bool {
+    let collision_x = (pos1.x - pos2.x).abs() <= (half_width1 + half_width2);
+    let collision_y = (pos1.y - pos2.y).abs() <= (half_height1 + half_height2);
+    collision_x && collision_y
 }
 fn check_health(
     player_query: Query<&Health, With<Player>>,
@@ -290,7 +422,7 @@ fn restart_game(
 
             // Reset player health
             if let Ok(player_entity) = player_query.get_single() {
-                commands.entity(player_entity).insert(Health(3));
+                commands.entity(player_entity).insert(Health(99));
             }
 
             // Update health info text
