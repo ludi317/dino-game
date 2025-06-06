@@ -2656,7 +2656,12 @@ dependencies = [
  "bevy",
  "bevy_prng",
  "bevy_rand",
+ "console_error_panic_hook",
+ "getrandom 0.2.15",
  "rand_core",
+ "uuid",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
@@ -4054,7 +4059,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ced87ca4be083373936a67f8de945faa23b6b42384bd5b64434850802c6dccd0"
 dependencies = [
  "getrandom 0.3.1",
+ "js-sys",
  "serde",
+ "wasm-bindgen",
 ]
 
 [[package]]
