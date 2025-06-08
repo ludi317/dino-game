@@ -1,9 +1,100 @@
+use std::f32::consts::PI;
+use bevy::asset::Assets;
+use bevy::color::Color;
+use bevy::hierarchy::{BuildChildren, ChildBuild};
 use bevy::image::Image;
-use bevy::prelude::default;
+use bevy::math::{Quat, Vec2, Vec3};
+use bevy::prelude::{default, Capsule2d, Circle, CircularSector, ColorMaterial, Commands, Mesh, Mesh2d, MeshMaterial2d, Rectangle, ResMut, Transform, Visibility};
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use bevy_prng::WyRand;
 use bevy_rand::global::GlobalEntropy;
+use rand::Rng;
 use rand_core::RngCore;
+use crate::{Collider, Obstacle};
+
+pub(crate) fn spawn_cactus(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    position: Vec2,
+    rng: &mut GlobalEntropy<WyRand>,
+) {
+    let green = Color::srgb(0.0, 0.5, 0.1);
+    let black = Color::BLACK;
+    let blue = Color::srgb(0.0, 0.0, 1.0);
+    let orange = Color::srgb(1.0, 0.5, 0.0);
+
+    // Create the main cactus parent first
+    let cactus_entity = commands.spawn((
+        Obstacle,
+        Transform::from_xyz(position.x, position.y, 0.0),
+        Visibility::Visible,
+    )).id();
+
+    let max_trunk_width = 20.0;
+    let min_trunk_width = 13.0;
+    let trunk_width = rng.gen_range(min_trunk_width..=max_trunk_width);
+    let trunk_height = rng.gen_range(38..58) as f32;
+    // Add components to main cactus
+    commands.entity(cactus_entity).with_children(|parent| {
+        // Main trunk
+        parent.spawn((
+            Mesh2d(meshes.add(Rectangle::new(trunk_width, trunk_height)).into()),
+            MeshMaterial2d(materials.add(green)),
+            Transform::from_xyz(0.0, trunk_height/2.0, 0.0),
+            Collider { size: Vec2::new(trunk_width, trunk_height) },
+        ));
+
+        // Circle top
+        parent.spawn((
+            Mesh2d(meshes.add(Circle::new(trunk_width/2.0)).into()),
+            MeshMaterial2d(materials.add(green)),
+            Transform::from_xyz(0.0, trunk_height, 0.0),
+        ));
+    });
+
+    let min_arm_width = 9.0;
+    let max_arm_width = 20.0;
+    let x_multi = [1.0, -1.0];
+
+    let arm_length = trunk_width / 2.0;
+    let scale = (trunk_width - min_trunk_width) / (max_trunk_width - min_trunk_width);
+    let arm_width = min_arm_width + scale * (max_arm_width - min_arm_width);
+    let curve_radius = arm_length;
+
+    // Generate the arms
+    for i in 0..2 {
+        let arm_highness = rng.gen_range(10.0..=30.0);
+        let caps_length = (curve_radius * ((rng.next_u32() % 3 + 1) as f32)).min(trunk_height - arm_highness);
+
+        commands.entity(cactus_entity).with_children(|parent| {
+            parent.spawn((
+                Transform::from_xyz(10.0 * x_multi[i], arm_highness, 0.0),
+                Visibility::Visible,
+            )).with_children(|arm| {
+                // Horizontal side arm
+                arm.spawn((
+                    Mesh2d(meshes.add(Rectangle::new(arm_width, arm_length)).into()),
+                    MeshMaterial2d(materials.add(green)),
+                ));
+                // Curved segment
+                arm.spawn((
+                    Mesh2d(meshes.add(CircularSector::new(curve_radius, PI / 2.0)).into()),
+                    MeshMaterial2d(materials.add(green)),
+                    Transform::IDENTITY.with_translation(Vec3::new(x_multi[i] * (arm_width -curve_radius), arm_length/2.0, 0.0))
+                        .with_rotation(Quat::from_rotation_z(5.0* x_multi[i]*PI/4.0 )),
+                ));
+                // Vertical capsule
+                arm.spawn((
+                    Mesh2d(meshes.add(Capsule2d::new(curve_radius/2.0, caps_length)).into()),
+                    MeshMaterial2d(materials.add(green)),
+                    Transform::IDENTITY.with_translation(Vec3::new(x_multi[i] * (arm_width -curve_radius/2.0), arm_length + curve_radius/2.1, 0.0)),
+                ));
+            });
+        });
+    }
+}
+
 
 pub(crate) fn generate_cactus(width: u32, height: u32, rng: &mut GlobalEntropy<WyRand>) -> Image {
     // Create empty image buffer
