@@ -10,7 +10,12 @@ And so, with the help of [JetBrains blog](https://blog.jetbrains.com/rust/2025/0
 
 ## Build Instructions for hosting on local web server
 1. ./build_web.sh
-2. cd static
+2. ```
+   cd static
    python3 -m http.server 80
+   ```
 3. Find your local IP address:
-On Mac: ipconfig getifaddr en0
+On Mac:
+```
+ipconfig getifaddr en0
+```
