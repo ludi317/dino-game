@@ -29,6 +29,7 @@ const OBSTACLE_COLOR: Color = Color::srgb(1.0, 0.0, 0.0);
 const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(30.0, 30.0);
 const HEALTH_PICKUP_COLOR: Color = Color::srgb(0.0, 1.0, 0.0);
 const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.0; // 30% chance to spawn instead of obstacle
+const CACTUS_FLOWER_CHANCE: f32 = 0.3; // 30% chance to spawn a flower on top of cactus
 const INITIAL_HEALTH: usize = 99;
 #[derive(Component)]
 struct HealthPickup;
