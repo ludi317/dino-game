@@ -1,9 +1,9 @@
 mod cactus;
 
-use crate::GameState::{GameOver, InGame};
 use crate::cactus::generate_cactus;
-use bevy::input::ButtonState;
+use crate::GameState::{GameOver, InGame};
 use bevy::input::keyboard::KeyboardInput;
+use bevy::input::ButtonState;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use bevy_prng::WyRand;
@@ -17,7 +17,7 @@ const GRAVITY: f32 = -4000.0;
 const PLAYER_X: f32 = -300.0;
 const PLAYER_SIZE: Vec2 = Vec2::new(30.0, 50.0);
 const PLAYER_COLOR: Color = Color::srgb(0.5, 1.0, 0.5);
-const SPAWN_INTERVAL: f32 = 1.5;
+const SPAWN_INTERVAL: f32 = 0.5;
 const GROUND_LEVEL: f32 = -200.0;
 const GROUND_SIZE: Vec2 = Vec2::new(800.0, 10.0);
 const GROUND_EDGE: f32 = GROUND_SIZE.x / 2.0;
@@ -26,7 +26,7 @@ const OBSTACLE_SIZE: Vec2 = Vec2::new(80.0, 100.0);
 const OBSTACLE_COLOR: Color = Color::srgb(1.0, 0.0, 0.0);
 const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(30.0, 30.0);
 const HEALTH_PICKUP_COLOR: Color = Color::srgb(0.0, 1.0, 0.0);
-const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.3; // 30% chance to spawn instead of obstacle
+const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.0; // 30% chance to spawn instead of obstacle
 
 #[derive(Component)]
 struct HealthPickup;
@@ -84,16 +84,29 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins(EntropyPlugin::<WyRand>::default())
         .add_systems(Startup, setup)
-        .insert_resource(ObstacleSpawningTimer(
-            Timer::from_seconds(SPAWN_INTERVAL, TimerMode::Repeating)))
+        .insert_resource(ObstacleSpawningTimer(Timer::from_seconds(
+            SPAWN_INTERVAL,
+            TimerMode::Repeating,
+        )))
         .insert_state(InGame)
-        .add_systems(Update, (jump, apply_gravity, player_movement, crouch)
-            .run_if(in_state(InGame)))
+        .add_systems(
+            Update,
+            (jump, apply_gravity, player_movement, crouch).run_if(in_state(InGame)),
+        )
         .add_systems(Update, toggle_pause)
         .add_systems(OnEnter(GameState::Paused), show_pause_text)
         .add_systems(OnExit(GameState::Paused), hide_pause_text)
-        .add_systems(Update, (spawn_obstacles, move_obstacles, detect_collision, render_health_info, check_health)
-            .run_if(in_state(InGame)))
+        .add_systems(
+            Update,
+            (
+                spawn_obstacles,
+                move_obstacles,
+                detect_collision,
+                render_health_info,
+                check_health,
+            )
+                .run_if(in_state(InGame)),
+        )
         .add_systems(OnEnter(GameOver), game_over)
         .add_systems(Update, restart_game.run_if(in_state(GameOver))) // New system to restart the game
         .run();
@@ -104,26 +117,21 @@ fn setup(mut commands: Commands) {
 
     let initial_health = 99;
     // Player
-    commands
-        .spawn((
-            Player,
-            Sprite {
-                color: PLAYER_COLOR,
-                custom_size: Some(PLAYER_SIZE),
-                anchor: Anchor::BottomCenter,
-                ..default()
-            },
-            Transform::from_xyz(PLAYER_X, GROUND_LEVEL, 0.0),
-            Velocity(Vec3::ZERO),
-            Health(initial_health),
-            OriginalSize(PLAYER_SIZE),
-        ));
-
     commands.spawn((
-        HealthInfo,
-        Text::new(format!("Health: {}", initial_health))
-    )
-    );
+        Player,
+        Sprite {
+            color: PLAYER_COLOR,
+            custom_size: Some(PLAYER_SIZE),
+            anchor: Anchor::BottomCenter,
+            ..default()
+        },
+        Transform::from_xyz(PLAYER_X, GROUND_LEVEL, 0.0),
+        Velocity(Vec3::ZERO),
+        Health(initial_health),
+        OriginalSize(PLAYER_SIZE),
+    ));
+
+    commands.spawn((HealthInfo, Text::new(format!("Health: {}", initial_health))));
 
     // Ground
     commands.spawn((
@@ -133,17 +141,20 @@ fn setup(mut commands: Commands) {
             anchor: Anchor::TopLeft,
             ..default()
         },
-        Transform::from_xyz(-GROUND_EDGE, GROUND_LEVEL, 0.0)
+        Transform::from_xyz(-GROUND_EDGE, GROUND_LEVEL, 0.0),
     ));
 }
 
 fn jump(
     mut events: EventReader<KeyboardInput>,
-    mut query: Query<(&mut Velocity, &Transform), With<Player>>
+    mut query: Query<(&mut Velocity, &Transform), With<Player>>,
 ) {
     for e in events.read() {
         if let Ok((mut velocity, transform)) = query.get_single_mut() {
-            if e.state.is_pressed() && (e.key_code == KeyCode::Space || e.key_code == KeyCode::ArrowUp) && transform.translation.y <= GROUND_LEVEL {
+            if e.state.is_pressed()
+                && (e.key_code == KeyCode::Space || e.key_code == KeyCode::ArrowUp)
+                && transform.translation.y <= GROUND_LEVEL
+            {
                 velocity.0.y = JUMP_FORCE;
             }
         }
@@ -152,7 +163,7 @@ fn jump(
 
 fn player_movement(
     time: Res<Time>,
-    mut query: Query<(&mut Transform, &mut Velocity), With<Player>>
+    mut query: Query<(&mut Transform, &mut Velocity), With<Player>>,
 ) {
     for (mut transform, mut velocity) in query.iter_mut() {
         transform.translation.y += velocity.0.y * time.delta_secs();
@@ -176,6 +187,8 @@ fn spawn_obstacles(
     mut spawn_timer: ResMut<ObstacleSpawningTimer>,
     mut rng: GlobalEntropy<WyRand>,
     mut images: ResMut<Assets<Image>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     spawn_timer.0.tick(time.delta());
     if spawn_timer.0.finished() {
@@ -196,18 +209,30 @@ fn spawn_obstacles(
                 Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
             ));
         } else {
-            let cactus_image = generate_cactus(128, 100, &mut rng);
-            let handle = images.add(cactus_image);
+            // let cactus_image = generate_cactus(128, 100, &mut rng);
+            // let handle = images.add(cactus_image);
             // Spawn obstacle
-            commands.spawn((
-                Obstacle,
-                Sprite {
-                    image: handle,
-                    anchor: Anchor::BottomCenter,
-                    ..default()
-                },
-                Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
-            ));
+            // commands.spawn((
+            //     Obstacle,
+            //     Sprite {
+            //         image: handle,
+            //         anchor: Anchor::BottomCenter,
+            //         ..default()
+            //     },
+            //     Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
+            // ));
+            spawn_cactus(
+                commands,
+                meshes,
+                materials,
+                Vec2::new(obstacle_x, obstacle_y),
+            );
+            // commands.spawn((
+            //     Obstacle,
+            //     Mesh2d(meshes.add(Rectangle::default())),
+            //     MeshMaterial2d(materials.add(Color::from(PURPLE))),
+            //     Transform::default().with_scale(Vec3::splat(128.)),
+            // ));
         }
     }
 }
@@ -229,15 +254,16 @@ fn toggle_pause(
 }
 
 fn show_pause_text(mut commands: Commands) {
-    commands.spawn((Node {
-        position_type: PositionType::Absolute,
-        left: Val::Percent(10.),
-        right: Val::Percent(10.),
-        top: Val::Percent(15.),
-        bottom: Val::Percent(15.),
-        justify_content: JustifyContent::Center,
-        ..default()
-    },))
+    commands
+        .spawn((Node {
+            position_type: PositionType::Absolute,
+            left: Val::Percent(10.),
+            right: Val::Percent(10.),
+            top: Val::Percent(15.),
+            bottom: Val::Percent(15.),
+            justify_content: JustifyContent::Center,
+            ..default()
+        },))
         .with_children(|builder| {
             builder.spawn((
                 Text("You have paused the game".to_string()),
@@ -255,6 +281,70 @@ fn hide_pause_text(mut commands: Commands, query: Query<Entity, With<PauseText>>
     }
 }
 
+fn spawn_cactus(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    position: Vec2,
+) {
+    // Cactus colors
+    let trunk_color = Color::srgb(0.0, 0.5, 0.1); // Dark green
+
+    // Create parent entity for the whole cactus
+    commands
+        .spawn((
+            Obstacle,
+            Transform::from_xyz(position.x, position.y, 0.0),
+            GlobalTransform::default(),
+            Visibility::Visible,
+        ))
+        .with_children(|parent| {
+            // Main trunk (taller rectangle)
+            parent.spawn((
+                Mesh2d(meshes.add(Rectangle::new(16.0, 48.0)).into()),
+                MeshMaterial2d(materials.add(trunk_color)),
+                Transform::from_xyz(0.0, 24.0, 0.0), // Center vertically
+                Collider {
+                    size: Vec2::new(16.0, 48.0),
+                },
+            ));
+
+            // Semicircle on top of main trunk
+            parent.spawn((
+                Mesh2d(meshes.add(CircularSegment::new(8.0, 3.14/2.0))),
+                MeshMaterial2d(materials.add(trunk_color)),
+                Transform::from_xyz(0.0, 48.0, 0.0), // Position at top of trunk
+                Collider {
+                    size: Vec2::new(16.0, 8.0),
+                },
+            ));
+
+            // Right arm horizontal base
+            parent.spawn((
+                Mesh2d(meshes.add(Rectangle::new(12.0, 24.0)).into()),
+                MeshMaterial2d(materials.add(trunk_color)),
+                Transform::from_xyz(10.0, 36.0, 0.0)
+                    .with_rotation(Quat::from_rotation_z(3.14 / 2.0)),
+                Collider {
+                    size: Vec2::new(12.0, 24.0),
+                },
+            ));
+
+            
+            //
+            // // Left arm (mirrored)
+            // parent.spawn((
+            //     MaterialMesh2dBundle {
+            //         mesh: meshes.add(Rectangle::new(12.0, 24.0)).into(),
+            //         material: materials.add(arm_color),
+            //         transform: Transform::from_xyz(-10.0, 36.0, 0.0)
+            //             .with_rotation(Quat::from_rotation_z(-0.3)), // -30 degree angle
+            //         ..default()
+            //     },
+            //     Collider::cuboid(6.0, 12.0),
+            // ));
+        });
+}
 
 fn move_obstacles(
     time: Res<Time>,
@@ -268,7 +358,7 @@ fn move_obstacles(
     for (entity, mut transform) in transforms.p0().iter_mut() {
         transform.translation.x -= GAME_SPEED * time.delta_secs();
         if transform.translation.x < -GROUND_EDGE {
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
 
@@ -280,73 +370,53 @@ fn move_obstacles(
         }
     }
 }
+
 fn detect_collision(
     mut commands: Commands,
-    mut player_query: Query<(&Transform, &mut Health, &Sprite), With<Player>>,
-    obstacle_query: Query<(Entity, &Transform, &Sprite), With<Obstacle>>,
-    health_pickup_query: Query<(Entity, &Transform, &Sprite), With<HealthPickup>>,
+    mut player_query: Query<(&Transform, &mut Health), With<Player>>,
+    obstacle_query: Query<(Entity, &Transform, &Children), With<Obstacle>>,
+    collider_query: Query<(&Transform, &Collider)>,
 ) {
-    if let Ok((player_transform, mut health, player_sprite)) = player_query.get_single_mut() {
-        let player_size = player_sprite.custom_size.unwrap_or(PLAYER_SIZE);
-        let player_half_width = player_size.x / 2.0;
-        let player_half_height = player_size.y / 2.0;
+    if let Ok((player_transform, mut health)) = player_query.get_single_mut() {
+        let player_size = PLAYER_SIZE;
+        let player_half = player_size / 2.0;
 
-        // Check collision with obstacles
-        for (entity, obstacle_transform, obstacle_sprite) in obstacle_query.iter() {
-            let obstacle_size = obstacle_sprite.custom_size.unwrap_or(OBSTACLE_SIZE);
-            let obstacle_half_width = obstacle_size.x / 2.0;
-            let obstacle_half_height = obstacle_size.y / 2.0;
+        for (entity, obstacle_transform, children) in obstacle_query.iter() {
+            for &child in children.iter() {
+                if let Ok((child_transform, collider)) = collider_query.get(child) {
+                    // Combine parent and child transforms
+                    let global_transform = obstacle_transform.mul_transform(*child_transform);
 
-            if is_colliding(
-                player_transform.translation,
-                player_half_width,
-                player_half_height,
-                obstacle_transform.translation,
-                obstacle_half_width,
-                obstacle_half_height,
-            ) {
-                health.0 = health.0.saturating_sub(1);
-                commands.entity(entity).despawn();
-            }
-        }
-
-        // Check collision with health pickups
-        for (entity, pickup_transform, pickup_sprite) in health_pickup_query.iter() {
-            let pickup_size = pickup_sprite.custom_size.unwrap_or(HEALTH_PICKUP_SIZE);
-            let pickup_half_width = pickup_size.x / 2.0;
-            let pickup_half_height = pickup_size.y / 2.0;
-
-            if is_colliding(
-                player_transform.translation,
-                player_half_width,
-                player_half_height,
-                pickup_transform.translation,
-                pickup_half_width,
-                pickup_half_height,
-            ) {
-                health.0 = health.0.saturating_add(1);
-                commands.entity(entity).despawn();
+                    if is_colliding(
+                        player_transform.translation,
+                        player_half,
+                        global_transform.translation,
+                        collider.size / 2.0,
+                    ) {
+                        health.0 = health.0.saturating_sub(1);
+                        commands.entity(entity).despawn_recursive();
+                        break; // No need to check other parts
+                    }
+                }
             }
         }
     }
 }
 
+#[derive(Component)]
+pub struct Collider {
+    pub size: Vec2,
+}
+
 // Helper function for collision detection
-fn is_colliding(
-    pos1: Vec3,
-    half_width1: f32,
-    half_height1: f32,
-    pos2: Vec3,
-    half_width2: f32,
-    half_height2: f32,
-) -> bool {
-    let collision_x = (pos1.x - pos2.x).abs() <= (half_width1 + half_width2);
-    let collision_y = (pos1.y - pos2.y).abs() <= (half_height1 + half_height2);
+fn is_colliding(pos1: Vec3, half_size1: Vec2, pos2: Vec3, half_size2: Vec2) -> bool {
+    let collision_x = (pos1.x - pos2.x).abs() <= (half_size1.x + half_size2.x);
+    let collision_y = (pos1.y - pos2.y).abs() <= (half_size1.y + half_size2.y);
     collision_x && collision_y
 }
 fn check_health(
     player_query: Query<&Health, With<Player>>,
-    mut game_state: ResMut<NextState<GameState>>
+    mut game_state: ResMut<NextState<GameState>>,
 ) {
     if let Ok(Health(health)) = player_query.get_single() {
         if *health == 0 {
@@ -377,15 +447,16 @@ fn crouch(
 }
 
 fn game_over(mut commands: Commands) {
-    commands.spawn((Node {
-        position_type: PositionType::Absolute,
-        left: Val::Percent(10.),
-        right: Val::Percent(10.),
-        top: Val::Percent(15.),
-        bottom: Val::Percent(15.),
-        justify_content: JustifyContent::Center,
-        ..default()
-    },))
+    commands
+        .spawn((Node {
+            position_type: PositionType::Absolute,
+            left: Val::Percent(10.),
+            right: Val::Percent(10.),
+            top: Val::Percent(15.),
+            bottom: Val::Percent(15.),
+            justify_content: JustifyContent::Center,
+            ..default()
+        },))
         .with_children(|builder| {
             builder.spawn((
                 Text("GAME OVER".to_string()),
@@ -442,7 +513,6 @@ fn restart_game(
             for text_entity in game_over_text_query.iter() {
                 commands.entity(text_entity).despawn();
             }
-
         }
     }
 }
