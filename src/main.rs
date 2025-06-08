@@ -9,6 +9,7 @@ use bevy::sprite::Anchor;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::{EntropyPlugin, GlobalEntropy};
 use rand_core::RngCore;
+use rand::Rng;
 
 //region Constants
 const GAME_SPEED: f32 = 400.0;
@@ -27,7 +28,7 @@ const OBSTACLE_COLOR: Color = Color::srgb(1.0, 0.0, 0.0);
 const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(30.0, 30.0);
 const HEALTH_PICKUP_COLOR: Color = Color::srgb(0.0, 1.0, 0.0);
 const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.0; // 30% chance to spawn instead of obstacle
-
+const INITIAL_HEALTH: usize = 99;
 #[derive(Component)]
 struct HealthPickup;
 //endregion
@@ -115,7 +116,6 @@ fn main() {
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2d::default());
 
-    let initial_health = 99;
     // Player
     commands.spawn((
         Player,
@@ -127,11 +127,11 @@ fn setup(mut commands: Commands) {
         },
         Transform::from_xyz(PLAYER_X, GROUND_LEVEL, 0.0),
         Velocity(Vec3::ZERO),
-        Health(initial_health),
+        Health(INITIAL_HEALTH),
         OriginalSize(PLAYER_SIZE),
     ));
 
-    commands.spawn((HealthInfo, Text::new(format!("Health: {}", initial_health))));
+    commands.spawn((HealthInfo, Text::new(format!("Health: {}", INITIAL_HEALTH))));
 
     // Ground
     commands.spawn((
@@ -226,6 +226,7 @@ fn spawn_obstacles(
                 meshes,
                 materials,
                 Vec2::new(obstacle_x, obstacle_y),
+                &mut rng,
             );
             // commands.spawn((
             //     Obstacle,
@@ -286,64 +287,130 @@ fn spawn_cactus(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     position: Vec2,
+    rng: &mut GlobalEntropy<WyRand>,
 ) {
-    // Cactus colors
-    let trunk_color = Color::srgb(0.0, 0.5, 0.1); // Dark green
+    let green = Color::srgb(0.0, 0.5, 0.1);
+    let black = Color::BLACK;
+    let blue = Color::srgb(0.0, 0.0, 1.0);
+    let orange = Color::srgb(1.0, 0.5, 0.0);
 
-    // Create parent entity for the whole cactus
-    commands
-        .spawn((
-            Obstacle,
-            Transform::from_xyz(position.x, position.y, 0.0),
-            GlobalTransform::default(),
-            Visibility::Visible,
-        ))
-        .with_children(|parent| {
-            // Main trunk (taller rectangle)
-            parent.spawn((
-                Mesh2d(meshes.add(Rectangle::new(16.0, 48.0)).into()),
-                MeshMaterial2d(materials.add(trunk_color)),
-                Transform::from_xyz(0.0, 24.0, 0.0), // Center vertically
-                Collider {
-                    size: Vec2::new(16.0, 48.0),
-                },
+    // Create the main cactus parent first
+    let cactus_entity = commands.spawn((
+        Obstacle,
+        SpatialBundle {
+            transform: Transform::from_xyz(position.x, position.y, 0.0),
+            ..default()
+        },
+    )).id();
+
+    let max_trunk_width = 20.0;
+    let min_trunk_width = 13.0;
+    let trunk_width = rng.gen_range(min_trunk_width..=max_trunk_width);
+    let trunk_height = rng.gen_range(38..58) as f32;
+    // Add components to main cactus
+    commands.entity(cactus_entity).with_children(|parent| {
+        // Main trunk
+        parent.spawn((
+            Mesh2d(meshes.add(Rectangle::new(trunk_width, trunk_height)).into()),
+            MeshMaterial2d(materials.add(green)),
+            Transform::from_xyz(0.0, trunk_height/2.0, 0.0),
+            Collider { size: Vec2::new(trunk_width, trunk_height) },
+        ));
+
+        // Circle top
+        parent.spawn((
+            Mesh2d(meshes.add(Circle::new(trunk_width/2.0)).into()),
+            MeshMaterial2d(materials.add(green)),
+            Transform::from_xyz(0.0, trunk_height, 0.0),
+        ));
+    });
+
+    let arm_length = trunk_width / 2.0;
+    let min_arm_width = 9.0;
+    let max_arm_width = 20.0;
+
+    let scale = (trunk_width - min_trunk_width) / (max_trunk_width - min_trunk_width);
+    let arm_width = min_arm_width + scale * (max_arm_width - min_arm_width);
+    let curve_radius = arm_length;
+    let arm_height = rng.gen_range(10.0..=30.0);
+    let rect_length = (curve_radius * ((rng.next_u32() % 3 + 1) as f32)).min(trunk_height - arm_height);
+
+    // Create and attach the right arm
+    commands.entity(cactus_entity).with_children(|parent| {
+        parent.spawn((
+            SpatialBundle {
+                transform: Transform::from_xyz(10.0, arm_height, 0.0),
+
+                ..default()
+
+            },
+        )).with_children(|arm| {
+            // Horizontal part
+            arm.spawn((
+                Mesh2d(meshes.add(Rectangle::new(arm_width, arm_length)).into()),
+                MeshMaterial2d(materials.add(green)),
+                // Transform::IDENTITY,
+                // Collider { size: Vec2::new(arm_width, arm_length) },
             ));
 
-            // Semicircle on top of main trunk
-            parent.spawn((
-                Mesh2d(meshes.add(CircularSegment::new(8.0, 3.14/2.0))),
-                MeshMaterial2d(materials.add(trunk_color)),
-                Transform::from_xyz(0.0, 48.0, 0.0), // Position at top of trunk
-                Collider {
-                    size: Vec2::new(16.0, 8.0),
-                },
+            // Curved segment
+            arm.spawn((
+                Mesh2d(meshes.add(CircularSector::new(curve_radius, std::f32::consts::PI / 2.0)).into()),
+                MeshMaterial2d(materials.add(green)),
+                Transform::IDENTITY.with_translation(Vec3::new(arm_width -curve_radius, arm_length/2.0, 0.0))
+                    .with_rotation(Quat::from_rotation_z(5.0*std::f32::consts::PI/4.0 )),
             ));
 
-            // Right arm horizontal base
-            parent.spawn((
-                Mesh2d(meshes.add(Rectangle::new(12.0, 24.0)).into()),
-                MeshMaterial2d(materials.add(trunk_color)),
-                Transform::from_xyz(10.0, 36.0, 0.0)
-                    .with_rotation(Quat::from_rotation_z(3.14 / 2.0)),
-                Collider {
-                    size: Vec2::new(12.0, 24.0),
-                },
+            // Vertical capsule
+            arm.spawn((
+                Mesh2d(meshes.add(Capsule2d::new(curve_radius/2.0, rect_length)).into()),
+                MeshMaterial2d(materials.add(green)),
+                Transform::IDENTITY.with_translation(Vec3::new(arm_width -curve_radius/2.0, arm_length +curve_radius/2.0, 0.0)),
             ));
-
-            
-            //
-            // // Left arm (mirrored)
-            // parent.spawn((
-            //     MaterialMesh2dBundle {
-            //         mesh: meshes.add(Rectangle::new(12.0, 24.0)).into(),
-            //         material: materials.add(arm_color),
-            //         transform: Transform::from_xyz(-10.0, 36.0, 0.0)
-            //             .with_rotation(Quat::from_rotation_z(-0.3)), // -30 degree angle
-            //         ..default()
-            //     },
-            //     Collider::cuboid(6.0, 12.0),
-            // ));
         });
+    });
+
+    let scale = (trunk_width - min_trunk_width) / (max_trunk_width - min_trunk_width);
+    let arm_width = min_arm_width + scale * (max_arm_width - min_arm_width);
+    let arm_length = trunk_width / 2.0;
+    let curve_radius = arm_length;
+    // randomly generate the length of the arm
+    let arm_height = rng.gen_range(10.0..=30.0);
+    let rect_length = (curve_radius * (rng.next_u32() % 3 + 1) as f32).min(trunk_height - arm_height);
+
+
+    // Create and attach the left arm (mirror of right arm)
+    commands.entity(cactus_entity).with_children(|parent| {
+        parent.spawn((
+            Transform::from_xyz(-10.0, arm_height, 0.0), // Negative X for left side
+            Visibility::Visible,
+
+        )).with_children(|arm| {
+            // Horizontal part (mirrored)
+            arm.spawn((
+                Mesh2d(meshes.add(Rectangle::new(arm_width, arm_length)).into()),
+                MeshMaterial2d(materials.add(green)),
+                Transform::IDENTITY,
+            ));
+
+            // Curved segment (mirrored)
+            arm.spawn((
+                Mesh2d(meshes.add(CircularSector::new(curve_radius, std::f32::consts::PI / 2.0)).into()),
+                MeshMaterial2d(materials.add(green)),
+                Transform::IDENTITY
+                    .with_translation(Vec3::new(-(arm_width - curve_radius), arm_length/2.0, 0.0)) // Negative X
+                    .with_rotation(Quat::from_rotation_z(3.0*std::f32::consts::PI/4.0)), // Different rotation for mirror
+            ));
+
+            // Vertical capsule
+            arm.spawn((
+                Mesh2d(meshes.add(Capsule2d::new(curve_radius/2.0, rect_length)).into()),
+                MeshMaterial2d(materials.add(green)),
+                Transform::IDENTITY
+                    .with_translation(Vec3::new(-(arm_width - curve_radius/2.0), arm_length + curve_radius/2.0, 0.0)),
+            ));
+        });
+    });
 }
 
 fn move_obstacles(
@@ -496,17 +563,12 @@ fn restart_game(
 
             // Reset player health
             if let Ok(player_entity) = player_query.get_single() {
-                commands.entity(player_entity).insert(Health(99));
-            }
-
-            // Update health info text
-            if let Ok(mut health_info) = health_info_query.get_single_mut() {
-                health_info.0 = "Health: 3".to_string();
+                commands.entity(player_entity).insert(Health(INITIAL_HEALTH));
             }
 
             // Despawn all obstacles
             for obstacle_entity in obstacle_query.iter() {
-                commands.entity(obstacle_entity).despawn();
+                commands.entity(obstacle_entity).despawn_recursive();
             }
 
             // Despawn the "GAME OVER" text

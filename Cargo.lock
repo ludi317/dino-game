@@ -3070,6 +3070,7 @@ dependencies = [
  "bevy_rand",
  "console_error_panic_hook",
  "getrandom 0.2.15",
+ "rand",
  "rand_core",
  "uuid",
  "wasm-bindgen",
