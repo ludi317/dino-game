@@ -18,15 +18,15 @@ const GRAVITY: f32 = -4000.0;
 const PLAYER_X: f32 = -300.0;
 const PLAYER_SIZE: Vec2 = Vec2::new(87.0, 94.0);
 const SPAWN_INTERVAL: f32 = 1.5;
-const GROUND_LEVEL: f32 = -200.0;
-const GROUND_SIZE: Vec2 = Vec2::new(800.0, 10.0);
+const GROUND_LEVEL: f32 = -300.0;
+const GROUND_SIZE: Vec2 = Vec2::new(1400.0, 10.0);
 const GROUND_EDGE: f32 = GROUND_SIZE.x / 2.0;
 const GROUND_COLOR: Color = Color::srgb(0.5, 0.5, 0.5);
 const OBSTACLE_SIZE: Vec2 = Vec2::new(80.0, 100.0);
 const OBSTACLE_COLOR: Color = Color::srgb(1.0, 0.0, 0.0);
 const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(30.0, 30.0);
 const HEALTH_PICKUP_COLOR: Color = Color::srgb(0.0, 1.0, 0.0);
-const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.3; // 30% chance to spawn instead of obstacle
+const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.3;
 const INITIAL_HEALTH: usize = 99;
 #[derive(Component)]
 struct HealthPickup;
@@ -35,9 +35,6 @@ struct HealthPickup;
 //region Components, resources, and states
 #[derive(Component)]
 struct Player;
-
-#[derive(Component)]
-struct Ground;
 
 #[derive(Component)]
 struct Velocity(Vec3);
@@ -144,10 +141,10 @@ fn main() {
         .add_systems(OnEnter(GameState::Paused), show_pause_text)
         .add_systems(OnExit(GameState::Paused), hide_pause_text)
         .add_systems(Update,
-            (spawn_obstacles, move_obstacles, detect_collision, render_health_info, check_health, animate_sprite)
+            (spawn_obstacles, move_obstacles, detect_collision, render_health_info, check_health,
+             animate_sprite, move_camera_system.before(ParallaxSystems))
                 .run_if(in_state(InGame)),
         )
-        .add_systems(Update, move_camera_system.before(ParallaxSystems))
         .add_systems(OnEnter(GameOver), game_over)
         .add_systems(Update, restart_game.run_if(in_state(GameOver))) // New system to restart the game
         .run();
@@ -155,7 +152,7 @@ fn main() {
 
 pub fn move_camera_system(
     mut move_event_writer: EventWriter<ParallaxMoveEvent>,
-    mut transforms: Query<&mut Transform, Or<(With<Player>, With<Obstacle>, With<Ground>, With<HealthPickup>)>>,
+    mut transforms: Query<&mut Transform, Or<(With<Player>, With<Obstacle>, With<HealthPickup>)>>,
     camera_query: Query<Entity, With<Camera>>,
 ) {
     let camera = camera_query.single();
@@ -183,34 +180,94 @@ pub fn initialize_camera_system(
         layers_data: vec![
             LayerData {
                 speed: LayerSpeed::Horizontal(0.9),
-                path: "cyberpunk_back.png".to_string(),
-                tile_size: UVec2::new(96, 160),
+                path: "9 Background.png".to_string(),
+                tile_size: UVec2::new(1920, 1080),
                 cols: 1,
                 rows: 1,
-                scale: Vec2::splat(4.5),
+                scale: Vec2::splat(1.0),
+                z: -9.0,
+                ..default()
+            },
+            LayerData {
+                speed: LayerSpeed::Horizontal(0.9),
+                path: "8 Stars.png".to_string(),
+                tile_size: UVec2::new(1920, 1080),
+                cols: 1,
+                rows: 1,
+                scale: Vec2::splat(1.0),
+                z: -8.0,
+                ..default()
+            },
+            LayerData {
+                speed: LayerSpeed::Horizontal(0.9),
+                path: "7 Clouds.png".to_string(),
+                tile_size: UVec2::new(1920, 1080),
+                cols: 1,
+                rows: 1,
+                scale: Vec2::splat(1.0),
+                z: -7.0,
+                ..default()
+            },
+            LayerData {
+                speed: LayerSpeed::Horizontal(0.8),
+                path: "6 Sun.png".to_string(),
+                tile_size: UVec2::new(1920, 1080),
+                cols: 1,
+                rows: 1,
+                scale: Vec2::splat(1.0),
+                z: -6.0,
+                ..default()
+            },
+            LayerData {
+                speed: LayerSpeed::Horizontal(0.7),
+                path: "5 Mountains.png".to_string(),
+                tile_size: UVec2::new(1920, 1080),
+                cols: 1,
+                rows: 1,
+                scale: Vec2::splat(1.0),
+                z: -5.0,
+                ..default()
+            },
+            LayerData {
+                speed: LayerSpeed::Horizontal(0.5),
+                path: "4 Layer4.png".to_string(),
+                tile_size: UVec2::new(1920, 1080),
+                cols: 1,
+                rows: 1,
+                scale: Vec2::splat(1.0),
+                z: -4.0,
+                ..default()
+            },
+            LayerData {
+                speed: LayerSpeed::Horizontal(0.4),
+                path: "3 Layer3.png".to_string(),
+                tile_size: UVec2::new(1920, 1080),
+                cols: 1,
+                rows: 1,
+                scale: Vec2::splat(1.0),
                 z: -3.0,
                 ..default()
             },
             LayerData {
-                speed: LayerSpeed::Horizontal(0.6),
-                path: "cyberpunk_middle.png".to_string(),
-                tile_size: UVec2::new(144, 160),
+                speed: LayerSpeed::Horizontal(0.3),
+                path: "2 Layer2.png".to_string(),
+                tile_size: UVec2::new(1920, 1080),
                 cols: 1,
                 rows: 1,
-                scale: Vec2::splat(4.5),
+                scale: Vec2::splat(1.0),
                 z: -2.0,
                 ..default()
             },
-            LayerData {
-                speed: LayerSpeed::Horizontal(0.1),
-                path: "cyberpunk_front.png".to_string(),
-                tile_size: UVec2::new(272, 160),
-                cols: 1,
-                rows: 1,
-                scale: Vec2::splat(4.5),
-                z: -1.0,
-                ..default()
-            },
+            // LayerData {
+            //     speed: LayerSpeed::Horizontal(0.2),
+            //     path: "1 Layer1.png".to_string(),
+            //     tile_size: UVec2::new(1920, 1080),
+            //     cols: 1,
+            //     rows: 1,
+            //     scale: Vec2::splat(1.0),
+            //     z: -1.0,
+            //     ..default()
+            // },
         ],
         camera: camera,
     };
@@ -248,17 +305,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atl
 
     commands.spawn((HealthInfo, Text::new(format!("Health: {}", INITIAL_HEALTH))));
 
-    // Ground
-    commands.spawn((
-        Ground,
-        Sprite {
-            color: GROUND_COLOR,
-            custom_size: Some(GROUND_SIZE),
-            anchor: Anchor::TopLeft,
-            ..default()
-        },
-        Transform::from_xyz(-GROUND_EDGE, GROUND_LEVEL, 0.0),
-    ));
 }
 
 fn jump(
@@ -311,7 +357,8 @@ fn spawn_obstacles(
     if spawn_timer.0.finished() {
         let camera_transform = camera_query.single();
         let obstacle_x = camera_transform.translation.x + GROUND_EDGE;
-        let obstacle_y = GROUND_LEVEL;
+        // add some randomness to the obstacle's y position
+        let obstacle_y = GROUND_LEVEL + rng.next_u32() as f32 % 50.0 - 25.0;
 
         // Randomly decide whether to spawn obstacle or health pickup
         if rng.next_u32() % 100 < (HEALTH_PICKUP_SPAWN_CHANCE * 100.0) as u32 {

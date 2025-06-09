@@ -4,3 +4,4 @@
 
 static/my_bevy_game.js
 static/my_bevy_game_bg.wasm
+static/assets/*
