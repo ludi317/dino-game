@@ -5,8 +5,9 @@ I wasn’t thrilled about this new obsession. Site blockers and blacklists prove
 When he begged to play again, I refused but offered a compromise: he could play the game if we coded it ourselves.
 
 And so, with the help of [JetBrains blog](https://blog.jetbrains.com/rust/2025/02/04/first-steps-in-game-development-with-rust-and-bevy/) and assistance from DeepSeek, we built a crude version of the Chrome Dino game, written in Rust using the Bevy engine.
-![Screenshot.png](Screenshot.png)
+## Game Demo
 
+![Dino Gameplay](dino-game-speed.gif)
 
 ## Build Instructions for hosting on local web server
 1. ./build_web.sh
