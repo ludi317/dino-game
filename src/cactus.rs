@@ -1,4 +1,4 @@
-use crate::{Collider, Obstacle, CACTUS_FLOWER_CHANCE, HEALTH_PICKUP_SPAWN_CHANCE};
+use crate::{Collider, Obstacle};
 use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::hierarchy::{BuildChildren, ChildBuild};
@@ -9,12 +9,13 @@ use bevy::prelude::{
     MeshMaterial2d, Rectangle, ResMut, Transform, Visibility,
 };
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
-use bevy::sprite::MaterialMesh2dBundle;
 use bevy_prng::WyRand;
 use bevy_rand::global::GlobalEntropy;
 use rand::Rng;
 use rand_core::RngCore;
 use std::f32::consts::PI;
+
+const CACTUS_FLOWER_CHANCE: f32 = 0.3; // 30% chance to spawn a flower on top of cactus
 
 pub(crate) fn spawn_cactus(
     mut commands: Commands,
@@ -24,13 +25,6 @@ pub(crate) fn spawn_cactus(
     rng: &mut GlobalEntropy<WyRand>,
 ) {
     let green = Color::srgb(0.0, 0.5, 0.1);
-    let black = Color::BLACK;
-    let blue = Color::srgb(0.0, 0.0, 1.0);
-    let orange = Color::srgb(1.0, 0.5, 0.0);
-    let yellow = Color::srgb(1.0, 1.0, 0.0);
-
-
-
 
     // Create the main cactus parent first
     let cactus_entity = commands
@@ -116,7 +110,7 @@ pub(crate) fn spawn_cactus(
                     arm.spawn((
                         Mesh2d(
                             meshes
-                                .add(CircularSector::new(curve_radius, PI / 2.0))
+                                .add(CircularSector::new(curve_radius, PI / 1.5))
                                 .into(),
                         ),
                         MeshMaterial2d(materials.add(green)),
