@@ -1,4 +1,4 @@
-My kindergartner son stumbled upon the Chrome Dino game one fine day when our internet went down (the game where the T-Rex jumps over cacti and ducks pterodactyls in the Chrome browser). He was instantly hooked, and kept finding gaming websites to play the Dino game. 
+My kindergartner son stumbled upon the [Chrome Dino game](https://en.wikipedia.org/wiki/Dinosaur_Game) one fine day when our internet went down. He was instantly hooked, and kept finding gaming websites to play the Dino game. 
 
 I wasn’t thrilled about this new obsession. Site blockers and blacklists proved futile—he’d always find another site to play the game. Eventually, I won the battle with a DNS whitelist custom for his device.
 
