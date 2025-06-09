@@ -121,16 +121,8 @@ fn main() {
         .add_systems(Update, toggle_pause)
         .add_systems(OnEnter(GameState::Paused), show_pause_text)
         .add_systems(OnExit(GameState::Paused), hide_pause_text)
-        .add_systems(
-            Update,
-            (
-                spawn_obstacles,
-                move_obstacles,
-                detect_collision,
-                render_health_info,
-                check_health,
-                animate_sprite,
-            )
+        .add_systems(Update,
+            (spawn_obstacles, move_obstacles, detect_collision, render_health_info, check_health, animate_sprite)
                 .run_if(in_state(InGame)),
         )
         .add_systems(OnEnter(GameOver), game_over)
@@ -225,6 +217,7 @@ fn spawn_obstacles(
     mut rng: GlobalEntropy<WyRand>,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
     spawn_timer.0.tick(time.delta());
     if spawn_timer.0.finished() {
@@ -237,7 +230,7 @@ fn spawn_obstacles(
             commands.spawn((
                 HealthPickup,
                 Sprite {
-                    color: HEALTH_PICKUP_COLOR,
+                    image: asset_server.load("cheeseburger.png"),
                     custom_size: Some(HEALTH_PICKUP_SIZE),
                     anchor: Anchor::BottomCenter,
                     ..default()
@@ -328,7 +321,6 @@ fn detect_collision(
     obstacle_query: Query<(Entity, &Transform, &Children), With<Obstacle>>,
     health_pickup_query: Query<(Entity, &Transform), With<HealthPickup>>,
     collider_query: Query<(&Transform, &Collider)>,
-    asset_server: Res<AssetServer>,
 ) {
     if let Ok((player_transform, mut health)) = player_query.get_single_mut() {
         let player_size = PLAYER_SIZE;
