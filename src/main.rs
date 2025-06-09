@@ -1,8 +1,7 @@
 mod cactus;
 
-use crate::cactus::{generate_cactus, spawn_cactus};
+use crate::cactus::spawn_cactus;
 use crate::GameState::{GameOver, InGame};
-use std::f32::consts::PI;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::input::ButtonState;
 use bevy::prelude::*;
@@ -10,16 +9,14 @@ use bevy::sprite::Anchor;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::{EntropyPlugin, GlobalEntropy};
 use rand_core::RngCore;
-use rand::Rng;
 
 //region Constants
 const GAME_SPEED: f32 = 400.0;
-const JUMP_FORCE: f32 = 2000.0;
+const JUMP_FORCE: f32 = 1800.0;
 const GRAVITY: f32 = -4000.0;
 const PLAYER_X: f32 = -300.0;
-const PLAYER_SIZE: Vec2 = Vec2::new(30.0, 50.0);
-const PLAYER_COLOR: Color = Color::srgb(0.5, 1.0, 0.5);
-const SPAWN_INTERVAL: f32 = 0.5;
+const PLAYER_SIZE: Vec2 = Vec2::new(87.0, 94.0);
+const SPAWN_INTERVAL: f32 = 1.5;
 const GROUND_LEVEL: f32 = -200.0;
 const GROUND_SIZE: Vec2 = Vec2::new(800.0, 10.0);
 const GROUND_EDGE: f32 = GROUND_SIZE.x / 2.0;
@@ -28,8 +25,7 @@ const OBSTACLE_SIZE: Vec2 = Vec2::new(80.0, 100.0);
 const OBSTACLE_COLOR: Color = Color::srgb(1.0, 0.0, 0.0);
 const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(30.0, 30.0);
 const HEALTH_PICKUP_COLOR: Color = Color::srgb(0.0, 1.0, 0.0);
-const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.0; // 30% chance to spawn instead of obstacle
-const CACTUS_FLOWER_CHANCE: f32 = 0.3; // 30% chance to spawn a flower on top of cactus
+const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.3; // 30% chance to spawn instead of obstacle
 const INITIAL_HEALTH: usize = 99;
 #[derive(Component)]
 struct HealthPickup;
@@ -70,7 +66,33 @@ enum GameState {
     GameOver,
 }
 //endregion
+#[derive(Component)]
+struct AnimationIndices {
+    first: usize,
+    last: usize,
+}
 
+#[derive(Component, Deref, DerefMut)]
+struct AnimationTimer(Timer);
+
+fn animate_sprite(
+    time: Res<Time>,
+    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite)>,
+) {
+    for (indices, mut timer, mut sprite) in &mut query {
+        timer.tick(time.delta());
+
+        if timer.just_finished() {
+            if let Some(atlas) = &mut sprite.texture_atlas {
+                atlas.index = if atlas.index == indices.last {
+                    indices.first
+                } else {
+                    atlas.index + 1
+                };
+            }
+        }
+    }
+}
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
@@ -84,7 +106,7 @@ pub fn run() {
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest())) // prevents blurry sprites
         .add_plugins(EntropyPlugin::<WyRand>::default())
         .add_systems(Startup, setup)
         .insert_resource(ObstacleSpawningTimer(Timer::from_seconds(
@@ -107,6 +129,7 @@ fn main() {
                 detect_collision,
                 render_health_info,
                 check_health,
+                animate_sprite,
             )
                 .run_if(in_state(InGame)),
         )
@@ -115,15 +138,24 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>) {
     commands.spawn(Camera2d::default());
+
+    let texture = asset_server.load("DinoRun1-0.png");
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(87, 94), 2, 1, Some(UVec2::new(1,0)), None);
+
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+    let animation_indices = AnimationIndices { first: 0, last: 1 };
 
     // Player
     commands.spawn((
         Player,
-        Sprite {
-            color: PLAYER_COLOR,
-            custom_size: Some(PLAYER_SIZE),
+        Sprite{
+            image: texture,
+            texture_atlas: Some(TextureAtlas {
+                layout: texture_atlas_layout,
+                index: animation_indices.first,
+            }),
             anchor: Anchor::BottomCenter,
             ..default()
         },
@@ -131,6 +163,9 @@ fn setup(mut commands: Commands) {
         Velocity(Vec3::ZERO),
         Health(INITIAL_HEALTH),
         OriginalSize(PLAYER_SIZE),
+        animation_indices,
+        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+
     ));
 
     commands.spawn((HealthInfo, Text::new(format!("Health: {}", INITIAL_HEALTH))));
@@ -206,6 +241,9 @@ fn spawn_obstacles(
                     custom_size: Some(HEALTH_PICKUP_SIZE),
                     anchor: Anchor::BottomCenter,
                     ..default()
+                },
+                Collider {
+                    size: HEALTH_PICKUP_SIZE,
                 },
                 Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
             ));
@@ -288,16 +326,18 @@ fn detect_collision(
     mut commands: Commands,
     mut player_query: Query<(&Transform, &mut Health), With<Player>>,
     obstacle_query: Query<(Entity, &Transform, &Children), With<Obstacle>>,
+    health_pickup_query: Query<(Entity, &Transform), With<HealthPickup>>,
     collider_query: Query<(&Transform, &Collider)>,
+    asset_server: Res<AssetServer>,
 ) {
     if let Ok((player_transform, mut health)) = player_query.get_single_mut() {
         let player_size = PLAYER_SIZE;
         let player_half = player_size / 2.0;
 
+        // Check collisions with obstacles
         for (entity, obstacle_transform, children) in obstacle_query.iter() {
             for &child in children.iter() {
                 if let Ok((child_transform, collider)) = collider_query.get(child) {
-                    // Combine parent and child transforms
                     let global_transform = obstacle_transform.mul_transform(*child_transform);
 
                     if is_colliding(
@@ -308,13 +348,27 @@ fn detect_collision(
                     ) {
                         health.0 = health.0.saturating_sub(1);
                         commands.entity(entity).despawn_recursive();
-                        break; // No need to check other parts
+                        break;
                     }
                 }
             }
         }
+
+        // Check collisions with health pickups
+        for (entity, pickup_transform) in health_pickup_query.iter() {
+            if is_colliding(
+                player_transform.translation,
+                player_half,
+                pickup_transform.translation,
+                HEALTH_PICKUP_SIZE / 2.0,
+            ) {
+                health.0 = health.0.saturating_add(1);
+                commands.entity(entity).despawn();
+            }
+        }
     }
 }
+
 
 #[derive(Component)]
 pub struct Collider {
@@ -399,7 +453,6 @@ fn restart_game(
     mut game_state: ResMut<NextState<GameState>>,
     player_query: Query<Entity, With<Player>>,
     obstacle_query: Query<Entity, With<Obstacle>>,
-    mut health_info_query: Query<&mut Text, With<HealthInfo>>,
     game_over_text_query: Query<Entity, With<GameOverText>>,
 ) {
     for e in events.read() {
