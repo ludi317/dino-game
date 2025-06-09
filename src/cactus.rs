@@ -35,10 +35,14 @@ pub(crate) fn spawn_cactus(
         ))
         .id();
 
-    let max_trunk_width = 20.0;
-    let min_trunk_width = 13.0;
+    let max_trunk_width = 30.0;
+    let min_trunk_width = 23.0;
+    let trunk_height = rng.gen_range(58..158) as f32;
+    let min_arm_highness = 20.0;
+    let max_arm_highness = trunk_height - 10.0;
+    let min_arm_width = 15.0;
+    let max_arm_width = 30.0;
     let trunk_width = rng.gen_range(min_trunk_width..=max_trunk_width);
-    let trunk_height = rng.gen_range(38..58) as f32;
     let top_spike_count = 3;
     let spike_length = 8.0;
     let spike_width = 1.5;
@@ -79,10 +83,8 @@ pub(crate) fn spawn_cactus(
         }
     });
 
-    let min_arm_width = 9.0;
-    let max_arm_width = 20.0;
-    let x_multi = [1.0, -1.0];
 
+    let x_multi = [1.0, -1.0];
     let arm_length = trunk_width / 2.0;
     let scale = (trunk_width - min_trunk_width) / (max_trunk_width - min_trunk_width);
     let arm_width = min_arm_width + scale * (max_arm_width - min_arm_width);
@@ -90,7 +92,7 @@ pub(crate) fn spawn_cactus(
 
     // Generate the arms
     for i in 0..2 {
-        let arm_highness = rng.gen_range(10.0..=30.0);
+        let arm_highness = rng.gen_range(min_arm_highness..=max_arm_highness);
         let caps_length =
             (curve_radius * ((rng.next_u32() % 3 + 1) as f32)).min(trunk_height - arm_highness);
 
