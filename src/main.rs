@@ -9,6 +9,7 @@ use bevy::sprite::Anchor;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::{EntropyPlugin, GlobalEntropy};
 use rand_core::RngCore;
+use bevy_parallax::{LayerSpeed, LayerData, ParallaxCameraComponent, ParallaxPlugin, CreateParallaxEvent, ParallaxSystems, ParallaxMoveEvent};
 
 //region Constants
 const GAME_SPEED: f32 = 400.0;
@@ -34,6 +35,9 @@ struct HealthPickup;
 //region Components, resources, and states
 #[derive(Component)]
 struct Player;
+
+#[derive(Component)]
+struct Ground;
 
 #[derive(Component)]
 struct Velocity(Vec3);
@@ -65,7 +69,6 @@ enum GameState {
     Paused,
     GameOver,
 }
-//endregion
 #[derive(Component)]
 struct AnimationIndices {
     first: usize,
@@ -74,6 +77,10 @@ struct AnimationIndices {
 
 #[derive(Component, Deref, DerefMut)]
 struct AnimationTimer(Timer);
+
+
+//endregion
+
 
 fn animate_sprite(
     time: Res<Time>,
@@ -105,9 +112,24 @@ pub fn run() {
 }
 
 fn main() {
+    let primary_window = Window {
+        title: "Window Name".to_string(),
+        resolution: (1280.0, 720.0).into(),
+        resizable: false,
+        ..default()
+    };
     App::new()
-        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest())) // prevents blurry sprites
         .add_plugins(EntropyPlugin::<WyRand>::default())
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    primary_window: Some(primary_window),
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
+        .add_plugins(ParallaxPlugin)
+        .add_systems(Startup, initialize_camera_system)
         .add_systems(Startup, setup)
         .insert_resource(ObstacleSpawningTimer(Timer::from_seconds(
             SPAWN_INTERVAL,
@@ -125,13 +147,77 @@ fn main() {
             (spawn_obstacles, move_obstacles, detect_collision, render_health_info, check_health, animate_sprite)
                 .run_if(in_state(InGame)),
         )
+        .add_systems(Update, move_camera_system.before(ParallaxSystems))
         .add_systems(OnEnter(GameOver), game_over)
         .add_systems(Update, restart_game.run_if(in_state(GameOver))) // New system to restart the game
         .run();
 }
 
+pub fn move_camera_system(
+    mut move_event_writer: EventWriter<ParallaxMoveEvent>,
+    mut transforms: Query<&mut Transform, Or<(With<Player>, With<Obstacle>, With<Ground>, With<HealthPickup>)>>,
+    camera_query: Query<Entity, With<Camera>>,
+) {
+    let camera = camera_query.single();
+
+    move_event_writer.send(ParallaxMoveEvent {
+        translation: Vec2::new(3.0, 0.0),
+        rotation: 0.0,
+        camera,
+    });
+
+    for mut transform in &mut transforms {
+        transform.translation.x += 3.0;
+    }
+}
+
+pub fn initialize_camera_system(
+    mut commands: Commands,
+    mut create_parallax: EventWriter<CreateParallaxEvent>
+) {
+    let camera = commands
+        .spawn(Camera2d::default())
+        .insert(ParallaxCameraComponent::default())
+        .id();
+    let event = CreateParallaxEvent {
+        layers_data: vec![
+            LayerData {
+                speed: LayerSpeed::Horizontal(0.9),
+                path: "cyberpunk_back.png".to_string(),
+                tile_size: UVec2::new(96, 160),
+                cols: 1,
+                rows: 1,
+                scale: Vec2::splat(4.5),
+                z: -3.0,
+                ..default()
+            },
+            LayerData {
+                speed: LayerSpeed::Horizontal(0.6),
+                path: "cyberpunk_middle.png".to_string(),
+                tile_size: UVec2::new(144, 160),
+                cols: 1,
+                rows: 1,
+                scale: Vec2::splat(4.5),
+                z: -2.0,
+                ..default()
+            },
+            LayerData {
+                speed: LayerSpeed::Horizontal(0.1),
+                path: "cyberpunk_front.png".to_string(),
+                tile_size: UVec2::new(272, 160),
+                cols: 1,
+                rows: 1,
+                scale: Vec2::splat(4.5),
+                z: -1.0,
+                ..default()
+            },
+        ],
+        camera: camera,
+    };
+    create_parallax.send(event);
+}
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>) {
-    commands.spawn(Camera2d::default());
+    // commands.spawn(Camera2d::default());
 
     let texture = asset_server.load("DinoRun1-0.png");
     let layout = TextureAtlasLayout::from_grid(UVec2::new(87, 94), 2, 1, Some(UVec2::new(1,0)), None);
@@ -164,6 +250,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atl
 
     // Ground
     commands.spawn((
+        Ground,
         Sprite {
             color: GROUND_COLOR,
             custom_size: Some(GROUND_SIZE),
@@ -218,10 +305,12 @@ fn spawn_obstacles(
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
+    camera_query: Query<&Transform, With<Camera>>, // Get camera position
 ) {
     spawn_timer.0.tick(time.delta());
     if spawn_timer.0.finished() {
-        let obstacle_x = GROUND_EDGE;
+        let camera_transform = camera_query.single();
+        let obstacle_x = camera_transform.translation.x + GROUND_EDGE;
         let obstacle_y = GROUND_LEVEL;
 
         // Randomly decide whether to spawn obstacle or health pickup
