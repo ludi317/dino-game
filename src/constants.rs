@@ -1,4 +1,3 @@
-use bevy::color::Color;
 use bevy::math::Vec2;
 
 pub const GAME_SPEED: f32 = 400.0;
