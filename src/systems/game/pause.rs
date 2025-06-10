@@ -44,8 +44,9 @@ pub fn show_pause_text(mut commands: Commands) {
 }
 
 pub fn hide_pause_text(mut commands: Commands, query: Query<Entity, With<PauseText>>) {
-    for entity in query.iter() {
-        commands.entity(entity).despawn();
+    if let Ok((entity)) = query.get_single() {
+       commands.entity(entity).despawn();
     }
 }
+
 
