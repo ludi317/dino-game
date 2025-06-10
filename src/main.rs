@@ -209,7 +209,7 @@ pub fn initialize_camera_system(
                 ..default()
             },
             LayerData {
-                speed: LayerSpeed::Horizontal(0.8),
+                speed: LayerSpeed::Horizontal(1.0),
                 path: "6 Sun.png".to_string(),
                 tile_size: UVec2::new(1920, 1080),
                 cols: 1,
