@@ -4,7 +4,6 @@ mod constants;
 mod components;
 mod systems {
     pub mod camera;
-    pub mod collision;
     pub mod game {
         pub mod setup;
         pub mod pause;
@@ -20,14 +19,13 @@ mod systems {
     }
 }
 
-use crate::constants::SPAWN_INTERVAL;
 use crate::resources::ObstacleSpawningTimer;
 use crate::states::GameState;
 use crate::states::GameState::{GameOver, InGame};
 use crate::systems::camera::{initialize_camera_system, move_camera_system};
 use crate::systems::game::pause::{hide_pause_text, show_pause_text, toggle_pause};
 use crate::systems::game::setup::setup;
-use crate::systems::collision::detect_collision;
+use systems::obstacles::movement::detect_collision;
 use crate::systems::game::end::{game_over, restart_game};
 use crate::systems::obstacles::movement::{move_obstacles, spawn_obstacles};
 use crate::systems::player::health::{check_health, render_health_info};
@@ -38,6 +36,7 @@ use bevy_parallax::{ParallaxPlugin, ParallaxSystems};
 use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
 
+const SPAWN_INTERVAL: f32 = 1.5;
 
 
 #[cfg(target_arch = "wasm32")]

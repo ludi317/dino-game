@@ -2,7 +2,8 @@ use bevy::prelude::*;
 use bevy::asset::AssetServer;
 use bevy::sprite::{Anchor, Sprite, TextureAtlas, TextureAtlasLayout};
 use crate::components::{AnimationIndices, AnimationTimer, Health, HealthInfo, OriginalSize, Player, Velocity};
-use crate::constants::{GROUND_LEVEL, INITIAL_HEALTH, PLAYER_SIZE, PLAYER_X};
+use crate::constants::{GROUND_LEVEL, INITIAL_HEALTH, PLAYER_SIZE};
+const PLAYER_X: f32 = -300.0;
 
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>) {
 
