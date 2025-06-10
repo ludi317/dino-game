@@ -70,23 +70,18 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(ParallaxPlugin)
-        .add_systems(Startup, initialize_camera_system)
-        .add_systems(Startup, setup)
         .insert_resource(ObstacleSpawningTimer(Timer::from_seconds(
             SPAWN_INTERVAL,
             TimerMode::Repeating,
         )))
         .insert_state(InGame)
-        .add_systems(
-            Update,
-            (jump, apply_gravity, player_movement, crouch).run_if(in_state(InGame)),
-        )
+        .add_systems(Startup, (setup, initialize_camera_system))
         .add_systems(Update, toggle_pause)
         .add_systems(OnEnter(GameState::Paused), show_pause_text)
         .add_systems(OnExit(GameState::Paused), hide_pause_text)
         .add_systems(Update,
             (spawn_obstacles, move_obstacles, detect_collision, render_health_info, check_health,
-             animate_sprite, move_camera_system.before(ParallaxSystems))
+             animate_sprite, move_camera_system.before(ParallaxSystems), jump, apply_gravity, player_movement, crouch)
                 .run_if(in_state(InGame)),
         )
         .add_systems(OnEnter(GameOver), game_over)
