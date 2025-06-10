@@ -18,8 +18,8 @@ pub fn spawn_cactus(
     mut materials: ResMut<Assets<ColorMaterial>>,
     position: Vec2,
     rng: &mut GlobalEntropy<WyRand>,
+    asset_server: Res<AssetServer>,
 ) {
-    let green = Color::srgb(0.0, 0.5, 0.1);
 
     // Create the main cactus parent first
     let cactus_entity = commands
@@ -43,13 +43,15 @@ pub fn spawn_cactus(
     let spike_width = 1.5;
     let circle_radius = trunk_width / 2.0;
     let flower = rng.next_u32() % 100 < (CACTUS_FLOWER_CHANCE * 100.0) as u32;
+
+    let texture_handle = asset_server.load("cactus texture.png");
     // Add components to main cactus
     commands.entity(cactus_entity).with_children(|parent| {
         // Main trunk
         parent.spawn((
             Mesh2d(meshes.add(Rectangle::new(trunk_width, trunk_height)).into()),
-            MeshMaterial2d(materials.add(green)),
-            Transform::from_xyz(0.0, trunk_height / 2.0, 0.0),
+            MeshMaterial2d(materials.add(texture_handle.clone())),
+            Transform::from_xyz(0.0, trunk_height / 2.0, 0.6),
             Collider {
                 size: Vec2::new(trunk_width, trunk_height),
             },
@@ -58,8 +60,8 @@ pub fn spawn_cactus(
         // Circle top
         parent.spawn((
             Mesh2d(meshes.add(Circle::new(trunk_width / 2.0)).into()),
-            MeshMaterial2d(materials.add(green)),
-            Transform::from_xyz(0.0, trunk_height, 0.0),
+            MeshMaterial2d(materials.add(texture_handle.clone())),
+            Transform::from_xyz(0.0, trunk_height, 0.1),
         ));
 
 
@@ -71,7 +73,7 @@ pub fn spawn_cactus(
                 parent.spawn((
                     Mesh2d(meshes.add(Rectangle::new(spike_width, spike_length)).into()),
                     MeshMaterial2d(materials.add(Color::WHITE)),
-                    Transform::from_xyz(0.0, trunk_height + circle_radius, 0.1)
+                    Transform::from_xyz(0.0, trunk_height + circle_radius, 0.5)
                         .with_rotation(Quat::from_rotation_z(angle)),
                 ));
             }
@@ -94,14 +96,14 @@ pub fn spawn_cactus(
         commands.entity(cactus_entity).with_children(|parent| {
             parent
                 .spawn((
-                    Transform::from_xyz(10.0 * x_multi[i], arm_highness, 0.0),
+                    Transform::from_xyz(10.0 * x_multi[i], arm_highness, 0.2),
                     Visibility::Visible,
                 ))
                 .with_children(|arm| {
                     // Horizontal side arm
                     arm.spawn((
                         Mesh2d(meshes.add(Rectangle::new(arm_width, arm_length)).into()),
-                        MeshMaterial2d(materials.add(green)),
+                        MeshMaterial2d(materials.add(texture_handle.clone())),
                     ));
                     // Curved segment
                     arm.spawn((
@@ -110,12 +112,12 @@ pub fn spawn_cactus(
                                 .add(CircularSector::new(curve_radius, PI / 1.5))
                                 .into(),
                         ),
-                        MeshMaterial2d(materials.add(green)),
+                        MeshMaterial2d(materials.add(texture_handle.clone())),
                         Transform::IDENTITY
                             .with_translation(Vec3::new(
                                 x_multi[i] * (arm_width - curve_radius),
                                 arm_length / 2.0,
-                                0.0,
+                                0.3,
                             ))
                             .with_rotation(Quat::from_rotation_z(5.0 * x_multi[i] * PI / 4.0)),
                     ));
@@ -126,11 +128,11 @@ pub fn spawn_cactus(
                                 .add(Capsule2d::new(curve_radius / 2.0, caps_length))
                                 .into(),
                         ),
-                        MeshMaterial2d(materials.add(green)),
+                        MeshMaterial2d(materials.add(texture_handle.clone())),
                         Transform::IDENTITY.with_translation(Vec3::new(
                             x_multi[i] * (arm_width - curve_radius / 2.0),
                             arm_length + curve_radius / 2.0,
-                            0.0,
+                            0.4,
                         )),
                     ));
 
@@ -146,7 +148,7 @@ pub fn spawn_cactus(
                                     .with_translation(Vec3::new(
                                         x_multi[i] * (arm_width - curve_radius / 2.0),
                                         arm_length + curve_radius + caps_length / 2.0,
-                                        0.1,
+                                        0.5,
                                     ))
                                     .with_rotation(Quat::from_rotation_z(angle)),
                             ));

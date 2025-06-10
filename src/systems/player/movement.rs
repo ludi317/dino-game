@@ -3,7 +3,11 @@ use bevy::input::keyboard::KeyboardInput;
 use bevy::math::Vec2;
 use bevy::prelude::{EventReader, KeyCode, Query, Res, Sprite, Time, Transform, With};
 use crate::components::{AnimationIndices, AnimationTimer, OriginalSize, Player, Velocity};
-use crate::constants::{GRAVITY, GROUND_LEVEL, JUMP_FORCE};
+use crate::constants::{GROUND_LEVEL};
+
+const JUMP_FORCE: f32 = 1800.0;
+const GRAVITY: f32 = -4000.0;
+
 
 pub fn player_movement(
     time: Res<Time>,
