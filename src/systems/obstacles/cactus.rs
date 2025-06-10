@@ -1,23 +1,20 @@
-use crate::{Collider, Obstacle};
 use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::hierarchy::{BuildChildren, ChildBuild};
 use bevy::image::Image;
 use bevy::math::{Quat, Vec2, Vec3};
-use bevy::prelude::{
-    default, Capsule2d, Circle, CircularSector, ColorMaterial, Commands, Mesh, Mesh2d,
-    MeshMaterial2d, Rectangle, ResMut, Transform, Visibility,
-};
+use bevy::prelude::*;
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use bevy_prng::WyRand;
 use bevy_rand::global::GlobalEntropy;
 use rand::Rng;
 use rand_core::RngCore;
 use std::f32::consts::PI;
+use crate::components::{Collider, Obstacle};
 
 const CACTUS_FLOWER_CHANCE: f32 = 0.3; // 30% chance to spawn a flower on top of cactus
 
-pub(crate) fn spawn_cactus(
+pub fn spawn_cactus(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
