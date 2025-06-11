@@ -31,7 +31,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture
         Health(INITIAL_HEALTH),
         OriginalSize(PLAYER_SIZE),
         animation_indices,
-        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+        AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
 
     ));
 
