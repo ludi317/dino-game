@@ -5,7 +5,7 @@ use bevy::prelude::{EventReader, KeyCode, Query, Res, Sprite, Time, Transform, W
 use crate::components::{AnimationIndices, AnimationTimer, OriginalSize, Player, Velocity};
 use crate::constants::{GROUND_LEVEL};
 
-const JUMP_FORCE: f32 = 2000.0;
+const JUMP_FORCE: f32 = 2100.0;
 const GRAVITY: f32 = -4000.0;
 
 
