@@ -9,6 +9,7 @@ use bevy_rand::global::GlobalEntropy;
 use rand::Rng;
 use rand_core::RngCore;
 use std::f32::consts::PI;
+use crate::resources::CactusTexture;
 
 const CACTUS_FLOWER_CHANCE: f32 = 0.3; // 30% chance to spawn a flower on top of cactus
 
@@ -16,6 +17,7 @@ pub fn spawn_cactus(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut cactus_texture: ResMut<CactusTexture>,
     position: Vec2,
     rng: &mut GlobalEntropy<WyRand>,
     asset_server: Res<AssetServer>,
@@ -44,13 +46,15 @@ pub fn spawn_cactus(
     let circle_radius = trunk_width / 2.0;
     let flower = rng.next_u32() % 100 < (CACTUS_FLOWER_CHANCE * 100.0) as u32;
 
-    let texture_handle = asset_server.load("cactus texture.png");
+    if cactus_texture.image.is_none() {
+        cactus_texture.image = Some(asset_server.load("cactus texture.png"));
+    }
     // Add components to main cactus
     commands.entity(cactus_entity).with_children(|parent| {
         // Main trunk
         parent.spawn((
             Mesh2d(meshes.add(Rectangle::new(trunk_width, trunk_height)).into()),
-            MeshMaterial2d(materials.add(texture_handle.clone())),
+            MeshMaterial2d(materials.add(cactus_texture.clone().image.unwrap())),
             Transform::from_xyz(0.0, trunk_height / 2.0, 0.6),
             Collider {
                 size: Vec2::new(trunk_width, trunk_height),
@@ -60,7 +64,7 @@ pub fn spawn_cactus(
         // Circle top
         parent.spawn((
             Mesh2d(meshes.add(Circle::new(trunk_width / 2.0)).into()),
-            MeshMaterial2d(materials.add(texture_handle.clone())),
+            MeshMaterial2d(materials.add(cactus_texture.clone().image.unwrap())),
             Transform::from_xyz(0.0, trunk_height, 0.1),
         ));
 
@@ -103,7 +107,7 @@ pub fn spawn_cactus(
                     // Horizontal side arm
                     arm.spawn((
                         Mesh2d(meshes.add(Rectangle::new(arm_width, arm_length)).into()),
-                        MeshMaterial2d(materials.add(texture_handle.clone())),
+                        MeshMaterial2d(materials.add(cactus_texture.clone().image.unwrap())),
                     ));
                     // Curved segment
                     arm.spawn((
@@ -112,7 +116,7 @@ pub fn spawn_cactus(
                                 .add(CircularSector::new(curve_radius, PI / 1.5))
                                 .into(),
                         ),
-                        MeshMaterial2d(materials.add(texture_handle.clone())),
+                        MeshMaterial2d(materials.add(cactus_texture.clone().image.unwrap())),
                         Transform::IDENTITY
                             .with_translation(Vec3::new(
                                 x_multi[i] * (arm_width - curve_radius),
@@ -128,7 +132,7 @@ pub fn spawn_cactus(
                                 .add(Capsule2d::new(curve_radius / 2.0, caps_length))
                                 .into(),
                         ),
-                        MeshMaterial2d(materials.add(texture_handle.clone())),
+                        MeshMaterial2d(materials.add(cactus_texture.clone().image.unwrap())),
                         Transform::IDENTITY.with_translation(Vec3::new(
                             x_multi[i] * (arm_width - curve_radius / 2.0),
                             arm_length + curve_radius / 2.0,

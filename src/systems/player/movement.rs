@@ -1,13 +1,12 @@
-use bevy::input::ButtonState;
-use bevy::input::keyboard::KeyboardInput;
-use bevy::math::Vec2;
-use bevy::prelude::{EventReader, KeyCode, Query, Res, Sprite, Time, Transform, With};
 use crate::components::{AnimationIndices, AnimationTimer, OriginalSize, Player, Velocity};
-use crate::constants::{GROUND_LEVEL};
+use crate::constants::GROUND_LEVEL;
+use bevy::input::keyboard::KeyboardInput;
+use bevy::input::ButtonState;
+use bevy::math::Vec2;
+use bevy::prelude::{EventReader, KeyCode, Query, Res, Sprite, Time, Touches, Transform, With};
 
-const JUMP_FORCE: f32 = 2100.0;
+const JUMP_FORCE: f32 = 2000.0;
 const GRAVITY: f32 = -4000.0;
-
 
 pub fn player_movement(
     time: Res<Time>,
@@ -56,12 +55,21 @@ pub fn apply_gravity(time: Res<Time>, mut query: Query<&mut Velocity, With<Playe
 pub fn jump(
     mut events: EventReader<KeyboardInput>,
     mut query: Query<(&mut Velocity, &Transform), With<Player>>,
+    touches: Res<Touches>,
 ) {
     for e in events.read() {
         if let Ok((mut velocity, transform)) = query.get_single_mut() {
             if e.state.is_pressed()
                 && (e.key_code == KeyCode::Space || e.key_code == KeyCode::ArrowUp)
                 && transform.translation.y <= GROUND_LEVEL
+            {
+                velocity.0.y = JUMP_FORCE;
+            }
+        }
+    }
+    for _touch in touches.iter_just_pressed(){
+        if let Ok((mut velocity, transform)) = query.get_single_mut() {
+                if transform.translation.y <= GROUND_LEVEL
             {
                 velocity.0.y = JUMP_FORCE;
             }

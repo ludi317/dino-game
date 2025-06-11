@@ -5,7 +5,7 @@ use bevy_rand::global::GlobalEntropy;
 use rand_core::RngCore;
 use crate::components::{Collider, Health, HealthPickup, Obstacle, Player};
 use crate::constants::{GROUND_LEVEL, PLAYER_SIZE};
-use crate::resources::ObstacleSpawningTimer;
+use crate::resources::{CactusTexture, Cheeseburger, ObstacleSpawningTimer};
 use crate::systems::obstacles::cactus::spawn_cactus;
 
 const GAME_SPEED: f32 = 400.0;
@@ -44,6 +44,8 @@ pub fn spawn_obstacles(
     mut commands: Commands,
     time: Res<Time>,
     mut spawn_timer: ResMut<ObstacleSpawningTimer>,
+    mut cheeseburger: ResMut<Cheeseburger>,
+    cactus_texture: ResMut<CactusTexture>,
     mut rng: GlobalEntropy<WyRand>,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<ColorMaterial>>,
@@ -59,11 +61,14 @@ pub fn spawn_obstacles(
 
         // Randomly decide whether to spawn obstacle or health pickup
         if rng.next_u32() % 100 < (HEALTH_PICKUP_SPAWN_CHANCE * 100.0) as u32 {
+            if cheeseburger.image.is_none() {
+                cheeseburger.image = Some(asset_server.load("cheeseburger.png"));
+            }
             // Spawn health pickup
             commands.spawn((
                 HealthPickup,
                 Sprite {
-                    image: asset_server.load("cheeseburger.png"),
+                    image: cheeseburger.clone().image.unwrap(),
                     custom_size: Some(HEALTH_PICKUP_SIZE),
                     anchor: Anchor::BottomCenter,
                     ..default()
@@ -71,7 +76,7 @@ pub fn spawn_obstacles(
                 Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
             ));
         } else {
-            spawn_cactus(commands, meshes, materials, Vec2::new(obstacle_x, obstacle_y), &mut rng, asset_server);
+            spawn_cactus(commands, meshes, materials,cactus_texture, Vec2::new(obstacle_x, obstacle_y), &mut rng, asset_server);
         }
     }
 }
