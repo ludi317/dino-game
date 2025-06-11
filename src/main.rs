@@ -1,35 +1,38 @@
+mod components;
+mod constants;
 mod resources;
 mod states;
-mod constants;
-mod components;
 mod systems {
     pub mod camera;
     pub mod game {
-        pub mod setup;
-        pub mod pause;
         pub mod end;
+        pub mod pause;
+        pub mod setup;
     }
     pub mod player {
-        pub mod movement;
         pub mod health;
+        pub mod movement;
     }
     pub mod obstacles {
-        pub mod movement;
         pub mod cactus;
+        pub mod movement;
     }
 }
 
-use crate::resources::ObstacleSpawningTimer;
+use crate::resources::{CactusTexture, Cheeseburger, ObstacleSpawningTimer};
 use crate::states::GameState;
 use crate::states::GameState::{GameOver, InGame};
 use crate::systems::camera::{initialize_camera_system, move_camera_system};
+use crate::systems::game::end::{game_over, restart_game};
 use crate::systems::game::pause::{hide_pause_text, show_pause_text, toggle_pause};
 use crate::systems::game::setup::setup;
-use systems::obstacles::movement::detect_collision;
-use crate::systems::game::end::{game_over, restart_game};
 use crate::systems::obstacles::movement::{move_obstacles, spawn_obstacles};
 use crate::systems::player::health::{check_health, render_health_info};
-use crate::systems::player::movement::{animate_sprite, apply_gravity, crouch, jump, player_movement};
+use crate::systems::player::movement::{
+    animate_sprite, apply_gravity, crouch, jump, player_movement,
+};
+use bevy::asset::AssetMetaCheck;
+use systems::obstacles::movement::detect_collision;
 
 use bevy::prelude::*;
 use bevy_parallax::{ParallaxPlugin, ParallaxSystems};
@@ -37,7 +40,6 @@ use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
 
 const SPAWN_INTERVAL: f32 = 1.5;
-
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -65,21 +67,39 @@ fn main() {
                     primary_window: Some(primary_window),
                     ..default()
                 })
-                .set(ImagePlugin::default_nearest()),
+                .set(ImagePlugin::default_nearest())
+                .set(AssetPlugin {
+                    meta_check: AssetMetaCheck::Never,
+                    ..default()
+                }),
         )
         .add_plugins(ParallaxPlugin)
         .insert_resource(ObstacleSpawningTimer(Timer::from_seconds(
             SPAWN_INTERVAL,
             TimerMode::Repeating,
         )))
+        .insert_resource(Cheeseburger{image: None})
+        .insert_resource(CactusTexture{image: None})
         .insert_state(InGame)
         .add_systems(Startup, (setup, initialize_camera_system))
         .add_systems(Update, toggle_pause)
         .add_systems(OnEnter(GameState::Paused), show_pause_text)
         .add_systems(OnExit(GameState::Paused), hide_pause_text)
-        .add_systems(Update,
-            (spawn_obstacles, move_obstacles, detect_collision, render_health_info, check_health,
-             animate_sprite, move_camera_system.before(ParallaxSystems), jump, apply_gravity, player_movement, crouch)
+        .add_systems(
+            Update,
+            (
+                spawn_obstacles,
+                move_obstacles,
+                detect_collision,
+                render_health_info,
+                check_health,
+                animate_sprite,
+                move_camera_system.before(ParallaxSystems),
+                jump,
+                apply_gravity,
+                player_movement,
+                crouch,
+            )
                 .run_if(in_state(InGame)),
         )
         .add_systems(OnEnter(GameOver), game_over)
