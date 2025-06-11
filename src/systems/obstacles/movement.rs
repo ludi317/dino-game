@@ -11,7 +11,8 @@ use crate::systems::obstacles::cactus::spawn_cactus;
 const GAME_SPEED: f32 = 400.0;
 const GROUND_SIZE: Vec2 = Vec2::new(1400.0, 10.0);
 const GROUND_EDGE: f32 = GROUND_SIZE.x / 2.0;
-const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(30.0, 30.0);
+const SCALE: f32 = 0.5;
+const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(77.0* SCALE, 70.0* SCALE);
 const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.3;
 
 pub fn move_obstacles(
@@ -66,9 +67,6 @@ pub fn spawn_obstacles(
                     custom_size: Some(HEALTH_PICKUP_SIZE),
                     anchor: Anchor::BottomCenter,
                     ..default()
-                },
-                Collider {
-                    size: HEALTH_PICKUP_SIZE,
                 },
                 Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
             ));
