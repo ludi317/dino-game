@@ -111,16 +111,16 @@ pub fn initialize_camera_system(
                 z: -2.0,
                 ..default()
             },
-            // LayerData {
-            //     speed: LayerSpeed::Horizontal(0.2),
-            //     path: "1 Layer1.png".to_string(),
-            //     tile_size: UVec2::new(1920, 1080),
-            //     cols: 1,
-            //     rows: 1,
-            //     scale: Vec2::splat(1.0),
-            //     z: -1.0,
-            //     ..default()
-            // },
+            LayerData {
+                speed: LayerSpeed::Horizontal(0.2),
+                path: "1 Layer1.png".to_string(),
+                tile_size: UVec2::new(1920, 1080),
+                cols: 1,
+                rows: 1,
+                scale: Vec2::splat(1.0),
+                z: -1.0,
+                ..default()
+            },
         ],
         camera: camera,
     };
