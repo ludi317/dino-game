@@ -2,9 +2,9 @@ My kindergartner stumbled upon the [Chrome Dino game](https://en.wikipedia.org/w
 
 I wasn’t thrilled about his new obsession. Site blockers and blacklists proved futile—he’d always find another site to play the game. Eventually, I won the battle with a DNS whitelist custom for his device.
 
-When he begged to play again, I refused but offered a compromise: he could play the game if we coded it ourselves.
+When he begged to play again, I offered a compromise: he could play the game if we coded it ourselves.
 
-With the help of [JetBrains blog](https://blog.jetbrains.com/rust/2025/02/04/first-steps-in-game-development-with-rust-and-bevy/) and assistance from DeepSeek, we built a version of the Chrome Dino game, written in Rust using the Bevy engine in a week. No pterodactlys in this version, but you will find cheeseburgers. 
+With the help of [JetBrains blog](https://blog.jetbrains.com/rust/2025/02/04/first-steps-in-game-development-with-rust-and-bevy/) and assistance from DeepSeek, we built a version of the Chrome Dino game, written in Rust using the Bevy engine in a week. No pterodactlys in this version, but there are cheeseburgers.
 ## Game Demo
 
 ![Dino Gameplay](images/dino-game-2.gif)
@@ -23,3 +23,37 @@ With the help of [JetBrains blog](https://blog.jetbrains.com/rust/2025/02/04/fir
    ```
    ipconfig getifaddr en0
    ```
+
+## Daemonization Notes
+```text
+Dino game is daemonized on my raspberry pi and accessible at max.net.
+
+Enable and start service:
+sudo systemctl daemon-reload
+sudo systemctl enable dino-game
+sudo systemctl start dino-game
+
+Check status:
+sudo systemctl status dino-game
+
+Check logs for errors:
+journalctl -u dino-game -f
+
+Daemon configuration file:
+$ cat /etc/systemd/system/dino-game.service
+[Unit]
+Description=Dino Game HTTP Server
+After=network.target
+
+[Service]
+User=pi
+ExecStart=/usr/bin/authbind python3 -m http.server 80
+WorkingDirectory=/home/pi/dino-game/static
+StandardOutput=file:/home/pi/dino-game/static/dino-logs.txt
+StandardError=file:/home/pi/dino-game/static/dino-logs.txt
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```

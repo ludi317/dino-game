@@ -26,3 +26,5 @@ console_error_panic_hook = "0.1.7"  # Required for WASM error handling
 inherits = "dev"
 opt-level = 3
 lto = true
+debug = false
+strip = true
