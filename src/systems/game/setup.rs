@@ -7,11 +7,11 @@ const PLAYER_X: f32 = -300.0;
 
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>) {
 
-    let texture = asset_server.load("DinoRun1-0.png");
-    let layout = TextureAtlasLayout::from_grid(UVec2::new(87, 94), 2, 1, Some(UVec2::new(1,0)), None);
+    let texture = asset_server.load("dino run 1-10.png");
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(1328, 768), 10, 1, None, None);
 
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_indices = AnimationIndices { first: 0, last: 1 };
+    let animation_indices = AnimationIndices { first: 0, last: 9 };
 
     // Player
     commands.spawn((
@@ -22,6 +22,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture
                 layout: texture_atlas_layout,
                 index: animation_indices.first,
             }),
+            custom_size: Some(PLAYER_SIZE),
             anchor: Anchor::BottomCenter,
             ..default()
         },

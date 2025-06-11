@@ -52,7 +52,7 @@ pub fn run() {
 
 fn main() {
     let primary_window = Window {
-        title: "Window Name".to_string(),
+        title: "Dino Runner".to_string(),
         resolution: (1280.0, 720.0).into(),
         resizable: false,
         ..default()

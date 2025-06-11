@@ -5,7 +5,7 @@ use bevy::prelude::{EventReader, KeyCode, Query, Res, Sprite, Time, Transform, W
 use crate::components::{AnimationIndices, AnimationTimer, OriginalSize, Player, Velocity};
 use crate::constants::{GROUND_LEVEL};
 
-const JUMP_FORCE: f32 = 1800.0;
+const JUMP_FORCE: f32 = 2000.0;
 const GRAVITY: f32 = -4000.0;
 
 
@@ -26,7 +26,12 @@ pub fn player_movement(
 pub fn animate_sprite(
     time: Res<Time>,
     mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite)>,
+    query2: Query<&Transform, With<Player>>,
 ) {
+    let player_transform = query2.single();
+    if player_transform.translation.y > GROUND_LEVEL {
+        return;
+    }
     for (indices, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
 
