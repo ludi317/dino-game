@@ -55,7 +55,7 @@ pub fn spawn_obstacles(
     spawn_timer.0.tick(time.delta());
     if spawn_timer.0.finished() {
         let camera_transform = camera_query.single();
-        let obstacle_x = camera_transform.translation.x + GROUND_EDGE;
+        let obstacle_x = camera_transform.translation.x + GROUND_EDGE + 200.0 + rng.next_u32() as f32 % 300.0 - 150.0;
         // add some randomness to the obstacle's y position
         let obstacle_y = GROUND_LEVEL + rng.next_u32() as f32 % 50.0 - 25.0;
 

@@ -112,7 +112,7 @@ pub fn initialize_camera_system(
                 ..default()
             },
             LayerData {
-                speed: LayerSpeed::Horizontal(0.2),
+                speed: LayerSpeed::Horizontal(-0.1),
                 path: "sand3.png".to_string(),
                 tile_size: UVec2::new(1920, 1080),
                 cols: 1,
