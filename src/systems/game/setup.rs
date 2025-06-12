@@ -26,7 +26,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture
             anchor: Anchor::BottomCenter,
             ..default()
         },
-        Transform::from_xyz(PLAYER_X, GROUND_LEVEL, 0.0),
+        Transform::from_xyz(PLAYER_X, GROUND_LEVEL, 0.7),
         Velocity(Vec3::ZERO),
         Health(INITIAL_HEALTH),
         OriginalSize(PLAYER_SIZE),
