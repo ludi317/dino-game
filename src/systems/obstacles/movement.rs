@@ -84,9 +84,9 @@ pub fn spawn_obstacles(
 pub fn detect_collision(
     mut commands: Commands,
     mut player_query: Query<(&Transform, &mut Health), With<Player>>,
-    obstacle_query: Query<(Entity, &Transform, &Children), With<Obstacle>>,
+    obstacle_query: Query<(Entity, &Children), With<Obstacle>>,
     health_pickup_query: Query<(Entity, &Transform), With<HealthPickup>>,
-    collider_query: Query<(&Transform, &Collider)>,
+    collider_query: Query<(&GlobalTransform, &Collider)>,
 ) {
     if let Ok((player_transform, mut health)) = player_query.get_single_mut() {
         let x_size_scale = 0.75;
@@ -94,15 +94,14 @@ pub fn detect_collision(
         let player_translation = Vec3::new(player_transform.translation.x + PLAYER_SIZE.x / 2.0 * x_size_scale / 2.0, player_transform.translation.y, player_transform.translation.z);
 
         // Check collisions with obstacles
-        for (entity, obstacle_transform, children) in obstacle_query.iter() {
+        for (entity, children) in obstacle_query.iter() {
             for &child in children.iter() {
-                if let Ok((child_transform, collider)) = collider_query.get(child) {
-                    let global_transform = obstacle_transform.mul_transform(*child_transform);
+                if let Ok((global_transform, collider)) = collider_query.get(child) {
 
                     if is_colliding(
                         player_translation,
                         player_half,
-                        global_transform.translation,
+                        global_transform.translation(),
                         collider.size / 2.0,
                     ) {
                         health.0 = health.0.saturating_sub(1);
