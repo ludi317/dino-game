@@ -89,8 +89,9 @@ pub fn detect_collision(
     collider_query: Query<(&Transform, &Collider)>,
 ) {
     if let Ok((player_transform, mut health)) = player_query.get_single_mut() {
-        let player_size = PLAYER_SIZE;
-        let player_half = player_size / 2.0;
+        let x_size_scale = 0.75;
+        let player_half = Vec2::new(PLAYER_SIZE.x / 2.0 * x_size_scale, PLAYER_SIZE.y / 2.0);
+        let player_translation = Vec3::new(player_transform.translation.x + PLAYER_SIZE.x / 2.0 * x_size_scale / 2.0, player_transform.translation.y, player_transform.translation.z);
 
         // Check collisions with obstacles
         for (entity, obstacle_transform, children) in obstacle_query.iter() {
@@ -99,7 +100,7 @@ pub fn detect_collision(
                     let global_transform = obstacle_transform.mul_transform(*child_transform);
 
                     if is_colliding(
-                        player_transform.translation,
+                        player_translation,
                         player_half,
                         global_transform.translation,
                         collider.size / 2.0,
