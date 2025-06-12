@@ -7,8 +7,11 @@ When he begged to play again, I offered a compromise: he could play the game if 
 With the help of [JetBrains blog](https://blog.jetbrains.com/rust/2025/02/04/first-steps-in-game-development-with-rust-and-bevy/) and assistance from DeepSeek, we built a version of the Chrome Dino game, written in Rust using the Bevy engine in a week. No pterodactlys in this version, but there are cheeseburgers.
 ## Game Demo
 
-![Dino Gameplay](images/dino-game-2.gif)
+![Dino Gameplay](images/dino-game.gif)
 
+Here is a screenshot of an earlier version of the game. Progress was made.
+
+![Early Dino Gameplay](images/Screenshot.png)
 ## Build instructions for hosting on local web server
 1. Target wasm with javascript bindings
     ```bash
