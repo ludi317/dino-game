@@ -20,7 +20,6 @@ pub fn spawn_cactus(
     cactus_texture: ResMut<CactusTexture>,
     position: Vec2,
     rng: &mut GlobalEntropy<WyRand>,
-    asset_server: Res<AssetServer>,
 ) {
 
     // cactus parameters
