@@ -37,4 +37,5 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture
 
     commands.spawn((HealthInfo, Text::new(format!("Health: {}", INITIAL_HEALTH))));
 
+
 }
