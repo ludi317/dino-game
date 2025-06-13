@@ -44,7 +44,7 @@ pub fn spawn_obstacles(
     mut commands: Commands,
     time: Res<Time>,
     mut spawn_timer: ResMut<ObstacleSpawningTimer>,
-    mut cheeseburger: ResMut<Cheeseburger>,
+    cheeseburger: ResMut<Cheeseburger>,
     cactus_texture: ResMut<CactusTexture>,
     mut rng: GlobalEntropy<WyRand>,
     meshes: ResMut<Assets<Mesh>>,
@@ -61,14 +61,11 @@ pub fn spawn_obstacles(
 
         // Randomly decide whether to spawn obstacle or health pickup
         if rng.next_u32() % 100 < (HEALTH_PICKUP_SPAWN_CHANCE * 100.0) as u32 {
-            if cheeseburger.image.is_none() {
-                cheeseburger.image = Some(asset_server.load("cheeseburger.png"));
-            }
             // Spawn health pickup
             commands.spawn((
                 HealthPickup,
                 Sprite {
-                    image: cheeseburger.clone().image.unwrap(),
+                    image: cheeseburger.0.clone(),
                     custom_size: Some(HEALTH_PICKUP_SIZE),
                     anchor: Anchor::BottomCenter,
                     ..default()

@@ -17,7 +17,7 @@ pub fn spawn_cactus(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut cactus_texture: ResMut<CactusTexture>,
+    cactus_texture: ResMut<CactusTexture>,
     position: Vec2,
     rng: &mut GlobalEntropy<WyRand>,
     asset_server: Res<AssetServer>,
@@ -42,9 +42,6 @@ pub fn spawn_cactus(
     let spike_width = 1.5;
     let flower = rng.next_u32() % 100 < (CACTUS_FLOWER_CHANCE * 100.0) as u32;
 
-    if cactus_texture.image.is_none() {
-        cactus_texture.image = Some(asset_server.load("cactus texture.png"));
-    }
     commands.spawn((
             Obstacle,
             Transform::from_xyz(position.x, position.y, 0.0),
@@ -54,7 +51,7 @@ pub fn spawn_cactus(
         // Main trunk
         parent.spawn((
             Mesh2d(meshes.add(Rectangle::new(trunk_width, trunk_height)).into()),
-            MeshMaterial2d(materials.add(cactus_texture.clone().image.unwrap())),
+            MeshMaterial2d(materials.add(cactus_texture.0.clone())),
             Transform::from_xyz(0.0, trunk_height / 2.0, 0.6),
             Collider {
                 size: Vec2::new(trunk_width, trunk_height),
@@ -65,7 +62,7 @@ pub fn spawn_cactus(
         let circle_radius = trunk_width / 2.0;
         parent.spawn((
             Mesh2d(meshes.add(Circle::new(circle_radius)).into()),
-            MeshMaterial2d(materials.add(cactus_texture.clone().image.unwrap())),
+            MeshMaterial2d(materials.add(cactus_texture.0.clone())),
             Transform::from_xyz(0.0, trunk_height, 0.1),
         ));
 
@@ -81,7 +78,7 @@ pub fn spawn_cactus(
             // Horizontal side arm
             parent.spawn((
                 Mesh2d(meshes.add(Rectangle::new(rect_width, arm_length)).into()),
-                MeshMaterial2d(materials.add(cactus_texture.clone().image.unwrap())),
+                MeshMaterial2d(materials.add(cactus_texture.0.clone())),
                 TransformRelative(&arm_offset,
                                   x_multi[i] * (rect_width / 2.0),
                                   0.,
@@ -92,7 +89,7 @@ pub fn spawn_cactus(
             // Curved segment to add texture noise between the horizontal and vertical segments
             parent.spawn((
                 Mesh2d(meshes.add(CircularSector::from_radians(curve_radius, PI / 4.0)).into()),
-                MeshMaterial2d(materials.add(cactus_texture.clone().image.unwrap())),
+                MeshMaterial2d(materials.add(cactus_texture.0.clone())),
                 TransformRelative(&arm_offset,
                     x_multi[i] * (arm_width - curve_radius),
                     arm_length / 2.0,
@@ -107,7 +104,7 @@ pub fn spawn_cactus(
 
             parent.spawn((
                 Mesh2d(meshes.add(Capsule2d::new(curve_radius / 2.0, caps_length)).into()),
-                MeshMaterial2d(materials.add(cactus_texture.clone().image.unwrap())),
+                MeshMaterial2d(materials.add(cactus_texture.0.clone())),
                 TransformRelative(
                     &arm_offset,
                     x_multi[i] * (arm_width - curve_radius / 2.0),

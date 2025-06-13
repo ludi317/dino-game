@@ -19,7 +19,7 @@ mod systems {
     }
 }
 
-use crate::resources::{CactusTexture, Cheeseburger, ObstacleSpawningTimer};
+use crate::resources::ObstacleSpawningTimer;
 use crate::states::GameState;
 use crate::states::GameState::{GameOver, InGame};
 use crate::systems::camera::{initialize_camera_system, move_camera_system};
@@ -78,8 +78,6 @@ fn main() {
             SPAWN_INTERVAL,
             TimerMode::Repeating,
         )))
-        .insert_resource(Cheeseburger{image: None})
-        .insert_resource(CactusTexture{image: None})
         .insert_state(InGame)
         .add_systems(Startup, (setup, initialize_camera_system))
         .add_systems(Update, toggle_pause)
