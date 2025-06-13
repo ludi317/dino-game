@@ -3,6 +3,8 @@ use bevy::asset::AssetServer;
 use bevy::sprite::{Anchor, Sprite, TextureAtlas, TextureAtlasLayout};
 use crate::components::{AnimationIndices, AnimationTimer, Health, HealthInfo, OriginalSize, Player, Velocity};
 use crate::constants::{GROUND_LEVEL, INITIAL_HEALTH, PLAYER_SIZE};
+use crate::resources::{CactusTexture, Cheeseburger};
+
 const PLAYER_X: f32 = -300.0;
 
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>) {
@@ -12,6 +14,9 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture
 
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let animation_indices = AnimationIndices { first: 0, last: 9 };
+
+    commands.insert_resource(Cheeseburger(asset_server.load("cheeseburger.png")));
+    commands.insert_resource(CactusTexture(asset_server.load("cactus texture.png")));
 
     // Player
     commands.spawn((
