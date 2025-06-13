@@ -11,6 +11,8 @@ use rand_core::RngCore;
 const GROUND_SIZE: Vec2 = Vec2::new(1400.0, 10.0);
 const GROUND_EDGE: f32 = GROUND_SIZE.x / 2.0;
 const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.3;
+const SKY_OFFSET: f32 = GROUND_LEVEL + 300.0;
+const FLY_SPEED: f32 = 100.0;
 
 pub fn move_ground(
     // https://bevy.org/examples/2d-rendering/sprite-tile/
@@ -27,13 +29,24 @@ pub fn move_ground(
 pub fn move_obstacles(
     time: Res<Time>,
     mut commands: Commands,
-    mut transforms: Query<(Entity, &mut Transform), Or<(With<Obstacle>, With<HealthPickup>)>>,
+    mut transforms: ParamSet<(
+        Query<(Entity, &mut Transform), With<Obstacle>>,
+        Query<(Entity, &mut Transform), With<HealthPickup>>,
+    )>,
 ) {
     // Move obstacles
-    for (entity, mut transform) in transforms.iter_mut() {
+    for (entity, mut transform) in transforms.p0().iter_mut() {
         transform.translation.x -= GAME_SPEED * time.delta_secs();
         if transform.translation.x < -GROUND_EDGE {
             commands.entity(entity).despawn_recursive();
+        }
+    }
+
+    // Move health pickups
+    for (entity, mut transform) in transforms.p1().iter_mut() {
+        transform.translation.x -= (GAME_SPEED + FLY_SPEED) * time.delta_secs();
+        if transform.translation.x < -GROUND_EDGE {
+            commands.entity(entity).despawn();
         }
     }
 }
@@ -53,11 +66,10 @@ pub fn spawn_obstacles(
     if spawn_timer.0.finished() {
         let camera_transform = camera_query.single();
         let obstacle_x = camera_transform.translation.x + GROUND_EDGE + 200.0 + rng.next_u32() as f32 % 300.0 - 150.0;
-        // add some randomness to the obstacle's y position
-        let obstacle_y = GROUND_LEVEL + rng.next_u32() as f32 % 50.0 - 25.0;
 
         // Randomly decide whether to spawn obstacle or health pickup
         if rng.next_u32() % 100 < (HEALTH_PICKUP_SPAWN_CHANCE * 100.0) as u32 {
+            let obstacle_y = SKY_OFFSET + rng.next_u32() as f32 % 300.0 - 150.0;
             // Spawn health pickup
             commands.spawn((
                 HealthPickup,
@@ -70,6 +82,7 @@ pub fn spawn_obstacles(
                 Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
             ));
         } else {
+            let obstacle_y = GROUND_LEVEL + rng.next_u32() as f32 % 50.0 - 25.0;
             spawn_cactus(commands, meshes, materials,cactus_texture, Vec2::new(obstacle_x, obstacle_y), &mut rng);
         }
     }

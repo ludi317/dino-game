@@ -7,4 +7,4 @@ pub const PLAYER_SIZE: Vec2 = Vec2::new(1328.0 * PLAYER_SCALE, 768.0 * PLAYER_SC
 pub const GROUND_LEVEL: f32 = -320.0;
 pub const INITIAL_HEALTH: usize = 99;
 pub const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(77.0 * HEALTH_SCALE, 70.0 * HEALTH_SCALE);
-pub const GAME_SPEED: f32 = 400.0;
+pub const GAME_SPEED: f32 = 500.0;
