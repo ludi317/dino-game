@@ -31,7 +31,7 @@ pub fn move_obstacles_y(time: Res<Time>,
     let mut ang_vel = 8.0;
     for (arm, mut transform, mut velocity) in arms_query.iter_mut() {
         if arm.is_hit {
-            transform.translation.z = 0.65; // higher than trunk (0.6), lower than player (0.7)
+            transform.translation.z = -0.1; // found by trial and error
             transform.translation.y += velocity.0.y * time.delta_secs();
             ang_vel *= -1.;
             transform.rotate_z(ang_vel*time.delta_secs());
