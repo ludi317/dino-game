@@ -1,4 +1,4 @@
-use crate::components::{CactusArm, CactusTrunk, Collider, HealthPickup, CactusRoot, Sand};
+use crate::components::{CactusArm, CactusTrunk, Collider, HealthPickup, CactusRoot, Sand, Velocity};
 use crate::constants::{GAME_SPEED, GROUND_LEVEL, HEALTH_PICKUP_SIZE};
 use crate::resources::{AnimationState, CactusTexture, Cheeseburger, ObstacleSpawningTimer};
 use crate::systems::obstacles::cactus::spawn_cactus;
@@ -24,6 +24,28 @@ pub fn move_ground(
     let (mut transform, mut sprite) = sprites.single_mut();
     sprite.custom_size = Some(Vec2::new(state.current, 1080.0));
     transform.translation.x += 3.0;
+}
+
+pub fn move_obstacles_y(   time: Res<Time>, mut trunks_query: Query<(Entity, &Children), With<CactusTrunk>>,
+                            mut cactus_trunk_query: Query<&mut CactusTrunk>,
+                            mut arms_query: Query<(&mut Transform, &mut Velocity), With<CactusArm>>) {
+
+    for ((entity, children)) in trunks_query.iter_mut() {
+        if let Ok(cactus_trunk) = cactus_trunk_query.get(entity) {
+            if cactus_trunk.is_hit {
+                for &child in children {
+                    if let Ok((mut arm_transform, mut velocity)) = arms_query.get_mut(child) {
+                        arm_transform.translation.y += velocity.0.y * time.delta_secs();
+
+                        if arm_transform.translation.y <= GROUND_LEVEL + 175.{
+                            arm_transform.translation.y = GROUND_LEVEL + 175.;
+                            velocity.0.y = 0.0;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 pub fn move_obstacles(
@@ -84,7 +106,7 @@ pub fn spawn_obstacles(
                 }
             ));
         } else {
-            let obstacle_y = GROUND_LEVEL + rng.gen_range(-80.0..-20.);
+            let obstacle_y = GROUND_LEVEL + rng.gen_range(-80.0..-20.) ;
             spawn_cactus(commands, meshes, materials,cactus_texture, Vec2::new(obstacle_x, obstacle_y), &mut rng);
         }
     }

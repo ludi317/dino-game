@@ -1,4 +1,4 @@
-use crate::components::{CactusArm, CactusTrunk, Collider, CactusRoot};
+use crate::components::{CactusArm, CactusTrunk, Collider, CactusRoot, CactusChild, HealthPickup, Velocity};
 use crate::resources::CactusTexture;
 use bevy::asset::Assets;
 use bevy::color::Color;
@@ -70,8 +70,14 @@ pub fn spawn_cactus(
             Mesh2d(meshes.add(Rectangle::new(trunk_width, trunk_height)).into()),
             MeshMaterial2d(materials.add(cactus_texture.0.clone())),
             Transform::from_xyz(0.0, trunk_height / 2.0, 0.6),
-            Collider{size: Vec2::new(trunk_width + 2.0 * arm_width - arm_length / 2.0, trunk_height)}
+
         )).with_children(|trunk| {
+            trunk.spawn((
+                CactusChild,
+                Transform::IDENTITY,
+                Collider{size: Vec2::new(trunk_width + 2.0 * arm_width - arm_length / 2.0, trunk_height)},
+            ));
+
             // Generate cactus arms
             let x_multi = [1.0, -1.0];
             let curve_radius = arm_length;
@@ -79,9 +85,12 @@ pub fn spawn_cactus(
                 let arm_highness = rng.gen_range(min_arm_highness..=max_arm_highness);
                 let caps_length = (curve_radius * ((rng.next_u32() % 3 + 1) as f32)).min(trunk_height - arm_highness);
 
-                trunk.spawn((CactusArm,
+                trunk.spawn((
+                    CactusArm,
                     Transform::from_xyz(10.0 * x_multi[i], arm_highness-trunk_height / 2.0, -0.6),  // offset the transform of the trunk
-                    Visibility::Visible)).with_children(|arm| {
+                    Visibility::Visible,
+                    Velocity(Vec3::ZERO),
+                )).with_children(|arm| {
 
                     // Horizontal side arm
                     let rect_width = arm_width - curve_radius;
