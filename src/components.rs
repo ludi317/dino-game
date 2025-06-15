@@ -46,12 +46,9 @@ pub struct Collider {
 pub struct Sand;
 
 #[derive(Component)]
-pub struct CactusArm;
-
-#[derive(Component)]
-pub struct CactusTrunk {
+pub struct CactusArm {
     pub is_hit: bool
 }
 
 #[derive(Component)]
-pub struct CactusChild;
+pub struct CactusCollider;

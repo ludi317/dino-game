@@ -1,4 +1,4 @@
-use crate::components::{CactusArm, CactusTrunk, Collider, HealthPickup, CactusRoot, Sand, Velocity};
+use crate::components::{CactusArm, Collider, HealthPickup, CactusRoot, Sand, Velocity};
 use crate::constants::{GAME_SPEED, GROUND_LEVEL, HEALTH_PICKUP_SIZE};
 use crate::resources::{AnimationState, CactusTexture, Cheeseburger, ObstacleSpawningTimer};
 use crate::systems::obstacles::cactus::spawn_cactus;
@@ -26,30 +26,24 @@ pub fn move_ground(
     transform.translation.x += 3.0;
 }
 
-pub fn move_obstacles_y(time: Res<Time>, mut trunks_query: Query<(Entity, &Children), With<CactusTrunk>>,
-                        cactus_trunk_query: Query<&mut CactusTrunk>,
-                        mut arms_query: Query<(&mut Transform, &mut Velocity), With<CactusArm>>) {
+pub fn move_obstacles_y(time: Res<Time>,
+                        mut arms_query: Query<(&CactusArm, &mut Transform, &mut Velocity), With<CactusArm>>) {
     let mut ang_vel = 8.0;
-    for (entity, children) in trunks_query.iter_mut() {
-        if let Ok(cactus_trunk) = cactus_trunk_query.get(entity) {
-            if cactus_trunk.is_hit {
-                for &child in children {
-                    if let Ok((mut arm_transform, mut velocity)) = arms_query.get_mut(child) {
-                        arm_transform.translation.z = 0.65; // higher than trunk (0.6), lower than player (0.7)
-                        arm_transform.translation.y += velocity.0.y * time.delta_secs();
-                        ang_vel *= -1.;
-                        arm_transform.rotate_z(ang_vel*time.delta_secs());
-                        if arm_transform.translation.y <= GROUND_LEVEL + 200.{
-                            arm_transform.translation.y = GROUND_LEVEL + 200.;
-                            velocity.0.y = 0.0;
-                            arm_transform.rotate_z(-1.0 * ang_vel * time.delta_secs());
-                        }
-                    }
-                }
+    for (arm, mut transform, mut velocity) in arms_query.iter_mut() {
+        if arm.is_hit {
+            transform.translation.z = 0.65; // higher than trunk (0.6), lower than player (0.7)
+            transform.translation.y += velocity.0.y * time.delta_secs();
+            ang_vel *= -1.;
+            transform.rotate_z(ang_vel*time.delta_secs());
+            if transform.translation.y <= GROUND_LEVEL + 200.{
+                transform.translation.y = GROUND_LEVEL + 200.;
+                velocity.0.y = 0.0;
+                transform.rotate_z(-1.0 * ang_vel * time.delta_secs());
             }
         }
     }
 }
+
 
 pub fn move_obstacles(
     time: Res<Time>,

@@ -1,17 +1,17 @@
 use bevy::prelude::*;
 use bevy::color::palettes::basic::RED;
 
-use crate::components::{CactusArm, CactusChild, CactusTrunk, Collider, Health, HealthPickup, Player, Velocity};
+use crate::components::{CactusArm, CactusCollider, Collider, Health, HealthPickup, Player, Velocity};
 
 pub fn detect_collision(
     mut commands: Commands,
     mut player_query: Query<(&Children, &mut Health), With<Player>>,
     player_collider_query: Query<(&GlobalTransform, &Collider)>,
 
-    collider_query: Query<(&GlobalTransform, &Collider, Entity), Or<(With<CactusChild>, With<HealthPickup>)>>,
-    mut cactus_trunk_collider: Query<(Entity, &Parent), With<CactusChild>>,
-    mut cactus_trunk_query: Query<(&mut CactusTrunk, &Children)>,
-    mut cactus_arm_query: Query<&mut Velocity, With<CactusArm>>,
+    collider_query: Query<(&GlobalTransform, &Collider, Entity), Or<(With<CactusCollider>, With<HealthPickup>)>>,
+    mut cactus_collider: Query<&Parent, With<CactusCollider>>,
+    mut children_query: Query<&Children>,
+    mut cactus_arm_query: Query<(&mut CactusArm, &mut Velocity), With<CactusArm>>,
 ) {
     // get player's health
     if let Ok((children, mut health)) = player_query.get_single_mut() {
@@ -23,24 +23,24 @@ pub fn detect_collision(
                 // if player collided...
                 if is_colliding(player_transform.translation(), player_half, transform.translation(), collider.size / 2.0) {
                     // ...with a cactus
-                    if let Ok((trunk_collider, parent)) = cactus_trunk_collider.get_mut(entity) {
-                        // get the cactus trunk
-                        if let Ok((mut trunk, children)) = cactus_trunk_query.get_mut(**parent) {
-                            trunk.is_hit = true;
+                    if let Ok(parent) = cactus_collider.get_mut(entity) {
+                        // get collider parent's children, aka siblings, which includes the cactus arm
+                        if let Ok(children) = children_query.get_mut(**parent) {
                             // reset cactus arm velocity to 0
                             for &child in children {
-                                if let Ok(mut velocity) = cactus_arm_query.get_mut(child) {
+                                if let Ok((mut cactus_arm, mut velocity)) = cactus_arm_query.get_mut(child) {
+                                    cactus_arm.is_hit = true;
                                     velocity.0.y = 0.;
                                 }
                             }
                         }
                         health.0 = health.0.saturating_sub(1);
-                        commands.entity(trunk_collider).despawn();
+
                     // ...with a cheeseburger
                     } else {
-                        commands.entity(entity).despawn();
                         health.0 = health.0.saturating_add(1);
                     }
+                    commands.entity(entity).despawn();
                     // return;
                 }
             }
@@ -55,7 +55,7 @@ pub fn is_colliding(pos1: Vec3, half_size1: Vec2, pos2: Vec3, half_size2: Vec2) 
 }
 
 pub fn debug_collider_outlines(
-    query: Query<(&GlobalTransform, &Collider), Or<(With<CactusChild>, With<HealthPickup>)>>,
+    query: Query<(&GlobalTransform, &Collider), Or<(With<CactusCollider>, With<HealthPickup>)>>,
     player_query: Query<&Children, With<Player>>,
     collider_query: Query<(&GlobalTransform, &Collider)>,
     mut gizmos: Gizmos,
