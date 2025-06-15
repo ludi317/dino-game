@@ -27,3 +27,4 @@ inherits = "release"
 lto = true
 strip = true
 incremental = true
+opt-level = "s"
