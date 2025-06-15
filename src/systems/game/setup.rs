@@ -33,7 +33,7 @@ pub fn setup(mut commands: Commands,
             custom_size: Some(PLAYER_SIZE),
             ..default()
         },
-        Transform::from_xyz(PLAYER_X, GROUND_LEVEL, 0.7),
+        Transform::from_xyz(PLAYER_X, GROUND_LEVEL+50., 0.7),
         Velocity(Vec3::ZERO),
         Health(INITIAL_HEALTH),
         OriginalSize(PLAYER_SIZE),

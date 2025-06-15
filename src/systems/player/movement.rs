@@ -1,9 +1,9 @@
-use crate::components::{AnimationIndices, AnimationTimer, OriginalSize, Player, Velocity};
+use crate::components::{AnimationIndices, AnimationTimer, CactusArm, OriginalSize, Player, Velocity};
 use crate::constants::GROUND_LEVEL;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::input::ButtonState;
 use bevy::math::Vec2;
-use bevy::prelude::{EventReader, KeyCode, Query, Res, Sprite, Time, Touches, Transform, With};
+use bevy::prelude::{EventReader, KeyCode, Or, Query, Res, Sprite, Time, Touches, Transform, With};
 
 const JUMP_FORCE: f32 = 2000.0;
 const GRAVITY: f32 = -4000.0;
@@ -46,7 +46,7 @@ pub fn animate_sprite(
     }
 }
 
-pub fn apply_gravity(time: Res<Time>, mut query: Query<&mut Velocity, With<Player>>) {
+pub fn apply_gravity(time: Res<Time>, mut query: Query<&mut Velocity, Or<(With<Player>, With<CactusArm>)>>) {
     for mut velocity in query.iter_mut() {
         velocity.0.y += GRAVITY * time.delta_secs();
     }

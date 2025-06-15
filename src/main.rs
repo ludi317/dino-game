@@ -28,7 +28,7 @@ use crate::systems::game::end::{game_over, restart_game};
 use crate::systems::game::pause::{hide_pause_text, show_pause_text, toggle_pause};
 use crate::systems::game::setup::setup;
 use crate::systems::obstacles::collision::{debug_collider_outlines, detect_collision};
-use crate::systems::obstacles::movement::{move_ground, move_obstacles, spawn_obstacles};
+use crate::systems::obstacles::movement::{move_ground, move_obstacles, move_obstacles_y, spawn_obstacles};
 use crate::systems::player::health::{check_health, render_health_info};
 use crate::systems::player::movement::{
     animate_sprite, apply_gravity, crouch, jump, player_movement,
@@ -95,6 +95,7 @@ fn main() {
             (
                 spawn_obstacles,
                 move_obstacles,
+                move_obstacles_y,
                 detect_collision,
                 render_health_info,
                 check_health,
