@@ -11,7 +11,7 @@ use rand::Rng;
 use rand_core::RngCore;
 use std::f32::consts::PI;
 
-const CACTUS_FLOWER_CHANCE: f32 = 0.0; // 30% chance to spawn a flower on top of cactus
+const CACTUS_FLOWER_CHANCE: f32 = 0.3; // 30% chance to spawn a flower on top of cactus
 
 pub fn spawn_cactus(
     mut commands: Commands,
