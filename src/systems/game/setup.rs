@@ -1,4 +1,4 @@
-use crate::components::{AnimationIndices, AnimationTimer, Health, HealthInfo, OriginalSize, Player, Sand, Velocity};
+use crate::components::{AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, OriginalSize, Player, Sand, Velocity};
 use crate::constants::{GROUND_LEVEL, INITIAL_HEALTH, PLAYER_SIZE};
 use crate::resources::{CactusTexture, Cheeseburger};
 use bevy::asset::AssetServer;
@@ -6,6 +6,7 @@ use bevy::prelude::*;
 use bevy::sprite::{Anchor, Sprite, TextureAtlas, TextureAtlasLayout};
 
 const PLAYER_X: f32 = -300.0;
+const HIT_BOX_SCALE_X: f32 = 0.67;
 
 pub fn setup(mut commands: Commands,
              asset_server: Res<AssetServer>,
@@ -23,14 +24,13 @@ pub fn setup(mut commands: Commands,
     // Player
     commands.spawn((
         Player,
-        Sprite{
+        Sprite {
             image: texture,
             texture_atlas: Some(TextureAtlas {
                 layout: texture_atlas_layout,
                 index: animation_indices.first,
             }),
             custom_size: Some(PLAYER_SIZE),
-            anchor: Anchor::BottomCenter,
             ..default()
         },
         Transform::from_xyz(PLAYER_X, GROUND_LEVEL, 0.7),
@@ -39,8 +39,14 @@ pub fn setup(mut commands: Commands,
         OriginalSize(PLAYER_SIZE),
         animation_indices,
         AnimationTimer(Timer::from_seconds(0.0875, TimerMode::Repeating)),
-
-    ));
+    )).with_children(|player| {
+        player.spawn((
+            Collider {
+                size: Vec2::new(PLAYER_SIZE.x * HIT_BOX_SCALE_X, PLAYER_SIZE.y),
+            },
+            Transform::from_xyz(PLAYER_SIZE.x * (1. - HIT_BOX_SCALE_X) * 0.5, 0.0, 0.0),
+        ));
+    });
 
     // Ground
     commands.spawn((
