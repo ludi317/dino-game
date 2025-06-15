@@ -54,6 +54,7 @@ pub fn is_colliding(pos1: Vec3, half_size1: Vec2, pos2: Vec3, half_size2: Vec2) 
     collision_x && collision_y
 }
 
+#[allow(dead_code)]
 pub fn debug_collider_outlines(
     query: Query<(&GlobalTransform, &Collider), Or<(With<CactusCollider>, With<HealthPickup>)>>,
     player_query: Query<&Children, With<Player>>,
