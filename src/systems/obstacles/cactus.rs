@@ -1,4 +1,4 @@
-use crate::components::{CactusArm, Collider, Obstacle};
+use crate::components::{CactusArm, CactusTrunk, Collider, Obstacle};
 use crate::resources::CactusTexture;
 use bevy::asset::Assets;
 use bevy::color::Color;
@@ -53,9 +53,11 @@ pub fn spawn_cactus(
         .with_children(|parent| {
             // Main trunk
             parent.spawn((
+                CactusTrunk{is_hit: false},
                 Mesh2d(meshes.add(Rectangle::new(trunk_width, trunk_height)).into()),
                 MeshMaterial2d(materials.add(cactus_texture.0.clone())),
                 Transform::from_xyz(0.0, trunk_height / 2.0, 0.6),
+                Collider{size: Vec2::new(trunk_width + 2.0 * arm_width - arm_length / 2.0, trunk_height)}
             ));
 
             // Circle top
@@ -88,11 +90,12 @@ pub fn spawn_cactus(
         for i in 0..2 {
             commands.entity(cactus_entity).with_children(|parent| {
                 let arm_highness = rng.gen_range(min_arm_highness..=max_arm_highness);
+                let caps_length = (curve_radius * ((rng.next_u32() % 3 + 1) as f32)).min(trunk_height - arm_highness);
+
                 parent.spawn((
-                        CactusArm{is_hit:false},
+                        CactusArm,
                         Transform::from_xyz(10.0 * x_multi[i], arm_highness, 0.0),
                         Visibility::Visible,
-                        Collider{size: Vec2::new(trunk_width, trunk_height)}
                     ))
                     .with_children(|arm| {
                         // Horizontal side arm
@@ -112,8 +115,6 @@ pub fn spawn_cactus(
                         ));
 
                         // Vertical capsule
-                        let caps_length = (curve_radius * ((rng.next_u32() % 3 + 1) as f32)).min(trunk_height - arm_highness);
-
                         arm.spawn((
                             Mesh2d(meshes.add(Capsule2d::new(curve_radius / 2.0, caps_length)).into()),
                             MeshMaterial2d(materials.add(cactus_texture.0.clone())),

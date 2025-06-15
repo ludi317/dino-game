@@ -1,49 +1,32 @@
 use bevy::prelude::*;
+use bevy::color::palettes::basic::RED;
 
-use crate::components::{Collider, Health, HealthPickup, Obstacle, Player};
-use crate::constants::{HEALTH_PICKUP_SIZE, PLAYER_SIZE};
+use crate::components::{CactusTrunk, Collider, Health, HealthPickup, Player};
 
 pub fn detect_collision(
     mut commands: Commands,
-    mut player_query: Query<(&Transform, &mut Health), With<Player>>,
-    obstacle_query: Query<(Entity, &Children), With<Obstacle>>,
-    health_pickup_query: Query<(Entity, &Transform), With<HealthPickup>>,
-    collider_query: Query<(&GlobalTransform, &Collider)>,
+    mut player_query: Query<(&Children, &mut Health), With<Player>>,
+    player_collider_query: Query<(&GlobalTransform, &Collider)>,
+    collider_query: Query<(&GlobalTransform, &Collider, Entity), Or<(With<CactusTrunk>, With<HealthPickup>)>>,
+    mut cactus_trunk_query: Query<&mut CactusTrunk>,
 ) {
-    if let Ok((player_transform, mut health)) = player_query.get_single_mut() {
-        let x_size_scale = 0.75;
-        let player_half = Vec2::new(PLAYER_SIZE.x / 2.0 * x_size_scale, PLAYER_SIZE.y / 2.0);
-        let player_translation = Vec3::new(player_transform.translation.x + PLAYER_SIZE.x / 2.0 * x_size_scale / 2.0, player_transform.translation.y, player_transform.translation.z);
-
-        // Check collisions with obstacles
-        for (entity, children) in obstacle_query.iter() {
-            for &child in children.iter() {
-                if let Ok((global_transform, collider)) = collider_query.get(child) {
-
-                    if is_colliding(
-                        player_translation,
-                        player_half,
-                        global_transform.translation(),
-                        collider.size / 2.0,
-                    ) {
-                        health.0 = health.0.saturating_sub(1);
+    if let Ok((children, mut health)) = player_query.get_single_mut() {
+        if let Ok((player_transform, player_collider)) = player_collider_query.get(*children.first().unwrap()) {
+            let player_half = player_collider.size / 2.0;
+            for (transform, collider, entity) in collider_query.iter() {
+                if is_colliding(player_transform.translation(), player_half, transform.translation(), collider.size / 2.0) {
+                    if let Ok(mut cactus_trunk) = cactus_trunk_query.get_mut(entity) {
+                        // hit the cactus
+                        cactus_trunk.is_hit = true;
                         commands.entity(entity).despawn_recursive();
-                        break;
+                        health.0 = health.0.saturating_sub(1);
+                    } else {
+                        // hit the health pickup
+                        commands.entity(entity).despawn();
+                        health.0 = health.0.saturating_add(1);
                     }
+                    return;
                 }
-            }
-        }
-
-        // Check collisions with health pickups
-        for (entity, pickup_transform) in health_pickup_query.iter() {
-            if is_colliding(
-                player_transform.translation,
-                player_half,
-                pickup_transform.translation,
-                HEALTH_PICKUP_SIZE / 2.0,
-            ) {
-                health.0 = health.0.saturating_add(1);
-                commands.entity(entity).despawn();
             }
         }
     }
@@ -53,4 +36,64 @@ pub fn is_colliding(pos1: Vec3, half_size1: Vec2, pos2: Vec3, half_size2: Vec2) 
     let collision_x = (pos1.x - pos2.x).abs() <= (half_size1.x + half_size2.x);
     let collision_y = (pos1.y - pos2.y).abs() <= (half_size1.y + half_size2.y);
     collision_x && collision_y
+}
+
+pub fn debug_collider_outlines(
+    query: Query<(&GlobalTransform, &Collider), Or<(With<CactusTrunk>, With<HealthPickup>)>>,
+    player_query: Query<&Children, With<Player>>,
+    collider_query: Query<(&GlobalTransform, &Collider)>,
+    mut gizmos: Gizmos,
+) {
+    for (transform, collider) in &query {
+        // Calculate half sizes
+        let half_width = collider.size.x / 2.0;
+        let half_height = collider.size.y / 2.0;
+
+        // Define the four corners of the collider in local space
+        let corners = [
+            Vec2::new(-half_width, -half_height), // Bottom-left
+            Vec2::new(half_width, -half_height),  // Bottom-right
+            Vec2::new(half_width, half_height),   // Top-right
+            Vec2::new(-half_width, half_height),  // Top-left
+        ];
+
+        // Convert corners to world space and draw lines between them
+        for i in 0..4 {
+            let start = transform.transform_point(corners[i].extend(0.0));
+            let end = transform.transform_point(corners[(i + 1) % 4].extend(0.0));
+
+            gizmos.line_2d(
+                start.truncate(),
+                end.truncate(),
+                RED, // You can customize the color
+            );
+        }
+    }
+
+    let player_collider = player_query.single().first().unwrap();
+    if let Ok((transform, collider)) = collider_query.get(*player_collider) {
+        // Calculate half sizes
+        let half_width = collider.size.x / 2.0;
+        let half_height = collider.size.y / 2.0;
+
+        // Define the four corners of the collider in local space
+        let corners = [
+            Vec2::new(-half_width, -half_height), // Bottom-left
+            Vec2::new(half_width, -half_height),  // Bottom-right
+            Vec2::new(half_width, half_height),   // Top-right
+            Vec2::new(-half_width, half_height),  // Top-left
+        ];
+
+        // Convert corners to world space and draw lines between them
+        for i in 0..4 {
+            let start = transform.transform_point(corners[i].extend(0.0));
+            let end = transform.transform_point(corners[(i + 1) % 4].extend(0.0));
+
+            gizmos.line_2d(
+                start.truncate(),
+                end.truncate(),
+                RED, // You can customize the color
+            );
+        }
+    }
 }

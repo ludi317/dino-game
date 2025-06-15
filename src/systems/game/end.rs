@@ -50,12 +50,12 @@ pub fn restart_game(
 
             // Despawn all obstacles
             for obstacle_entity in obstacle_query.iter() {
-                commands.entity(obstacle_entity).despawn_recursive();
+                commands.entity(obstacle_entity).try_despawn_recursive();
             }
 
             // Despawn the "GAME OVER" text
             for text_entity in game_over_text_query.iter() {
-                commands.entity(text_entity).despawn();
+                commands.entity(text_entity).try_despawn();
             }
         }
     }

@@ -1,11 +1,11 @@
-use crate::components::{HealthPickup, Obstacle, Sand};
+use crate::components::{Collider, HealthPickup, Obstacle, Sand};
 use crate::constants::{GAME_SPEED, GROUND_LEVEL, HEALTH_PICKUP_SIZE};
 use crate::resources::{AnimationState, CactusTexture, Cheeseburger, ObstacleSpawningTimer};
 use crate::systems::obstacles::cactus::spawn_cactus;
 use bevy::prelude::*;
-use bevy::sprite::Anchor;
 use bevy_prng::WyRand;
 use bevy_rand::global::GlobalEntropy;
+use rand::Rng;
 use rand_core::RngCore;
 
 const GROUND_SIZE: Vec2 = Vec2::new(1400.0, 10.0);
@@ -38,7 +38,7 @@ pub fn move_obstacles(
     for (entity, mut transform) in transforms.p0().iter_mut() {
         transform.translation.x -= GAME_SPEED * time.delta_secs();
         if transform.translation.x < -GROUND_EDGE {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).try_despawn_recursive();
         }
     }
 
@@ -46,7 +46,7 @@ pub fn move_obstacles(
     for (entity, mut transform) in transforms.p1().iter_mut() {
         transform.translation.x -= (GAME_SPEED + FLY_SPEED) * time.delta_secs();
         if transform.translation.x < -GROUND_EDGE {
-            commands.entity(entity).despawn();
+            commands.entity(entity).try_despawn();
         }
     }
 }
@@ -76,13 +76,15 @@ pub fn spawn_obstacles(
                 Sprite {
                     image: cheeseburger.0.clone(),
                     custom_size: Some(HEALTH_PICKUP_SIZE),
-                    anchor: Anchor::BottomCenter,
                     ..default()
                 },
                 Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
+                Collider{
+                    size : HEALTH_PICKUP_SIZE,
+                }
             ));
         } else {
-            let obstacle_y = GROUND_LEVEL + rng.next_u32() as f32 % 50.0 - 25.0;
+            let obstacle_y = GROUND_LEVEL + rng.gen_range(-80.0..-20.);
             spawn_cactus(commands, meshes, materials,cactus_texture, Vec2::new(obstacle_x, obstacle_y), &mut rng);
         }
     }

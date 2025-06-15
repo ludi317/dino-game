@@ -27,7 +27,7 @@ use crate::systems::camera::{initialize_camera_system, move_camera_system};
 use crate::systems::game::end::{game_over, restart_game};
 use crate::systems::game::pause::{hide_pause_text, show_pause_text, toggle_pause};
 use crate::systems::game::setup::setup;
-use crate::systems::obstacles::collision::detect_collision;
+use crate::systems::obstacles::collision::{debug_collider_outlines, detect_collision};
 use crate::systems::obstacles::movement::{move_ground, move_obstacles, spawn_obstacles};
 use crate::systems::player::health::{check_health, render_health_info};
 use crate::systems::player::movement::{
@@ -40,7 +40,7 @@ use bevy_parallax::{ParallaxPlugin, ParallaxSystems};
 use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
 
-const SPAWN_INTERVAL: f32 = 1.5;
+const SPAWN_INTERVAL: f32 = 0.5;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -110,6 +110,7 @@ fn main() {
         )
         .add_systems(OnEnter(GameOver), game_over)
         .add_systems(Update, restart_game.run_if(in_state(GameOver)))
+        .add_systems(Update, debug_collider_outlines)
         .run();
 }
 
