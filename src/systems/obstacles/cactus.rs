@@ -1,4 +1,4 @@
-use crate::components::{Collider, Obstacle};
+use crate::components::{CactusArm, Collider, Obstacle};
 use crate::resources::CactusTexture;
 use bevy::asset::Assets;
 use bevy::color::Color;
@@ -89,6 +89,7 @@ pub fn spawn_cactus(
             commands.entity(cactus_entity).with_children(|parent| {
                 let arm_highness = rng.gen_range(min_arm_highness..=max_arm_highness);
                 parent.spawn((
+                        CactusArm{is_hit:false},
                         Transform::from_xyz(10.0 * x_multi[i], arm_highness, 0.0),
                         Visibility::Visible,
                         Collider{size: Vec2::new(trunk_width, trunk_height)}
