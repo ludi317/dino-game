@@ -1,7 +1,7 @@
 use bevy::color::Color;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
-use crate::components::{GameOverText, Health, Obstacle, Player};
+use crate::components::{GameOverText, Health, CactusRoot, Player};
 use crate::constants::INITIAL_HEALTH;
 use crate::states::GameState;
 use crate::states::GameState::InGame;
@@ -35,7 +35,7 @@ pub fn restart_game(
     mut events: EventReader<KeyboardInput>,
     mut game_state: ResMut<NextState<GameState>>,
     player_query: Query<Entity, With<Player>>,
-    obstacle_query: Query<Entity, With<Obstacle>>,
+    obstacle_query: Query<Entity, With<CactusRoot>>,
     game_over_text_query: Query<Entity, With<GameOverText>>,
 ) {
     for e in events.read() {

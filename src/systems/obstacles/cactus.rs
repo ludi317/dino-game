@@ -1,4 +1,4 @@
-use crate::components::{CactusArm, CactusTrunk, Collider, Obstacle};
+use crate::components::{CactusArm, CactusTrunk, Collider, CactusRoot};
 use crate::resources::CactusTexture;
 use bevy::asset::Assets;
 use bevy::color::Color;
@@ -41,100 +41,86 @@ pub fn spawn_cactus(
     let flower = rng.next_u32() % 100 < (CACTUS_FLOWER_CHANCE * 100.0) as u32;
 
 
-    let cactus_entity = commands
-        .spawn((
-            Obstacle,
-            Transform::from_xyz(position.x, position.y, 0.0),
-            Visibility::Visible,
-        ))
-        .id();
+    commands.spawn((CactusRoot, Transform::from_xyz(position.x, position.y, 0.0), Visibility::Visible)).with_children(|root| {
+        // Circle top
+        let circle_radius = trunk_width / 2.0;
+        root.spawn((
+            Mesh2d(meshes.add(Circle::new(circle_radius)).into()),
+            MeshMaterial2d(materials.add(cactus_texture.0.clone())),
+            Transform::from_xyz(0.0, trunk_height, 0.1),
+        ));
 
-    commands.entity(cactus_entity)
-        .with_children(|parent| {
-            // Main trunk
-            parent.spawn((
-                CactusTrunk{is_hit: false},
-                Mesh2d(meshes.add(Rectangle::new(trunk_width, trunk_height)).into()),
-                MeshMaterial2d(materials.add(cactus_texture.0.clone())),
-                Transform::from_xyz(0.0, trunk_height / 2.0, 0.6),
-                Collider{size: Vec2::new(trunk_width + 2.0 * arm_width - arm_length / 2.0, trunk_height)}
-            ));
+        // Top flower
+        if flower {
+            for i in 0..top_spike_count {
+                let angle = PI + (i as f32 * std::f32::consts::TAU / top_spike_count as f32);
 
-            // Circle top
-            let circle_radius = trunk_width / 2.0;
-            parent.spawn((
-                Mesh2d(meshes.add(Circle::new(circle_radius)).into()),
-                MeshMaterial2d(materials.add(cactus_texture.0.clone())),
-                Transform::from_xyz(0.0, trunk_height, 0.1),
-            ));
-
-            // Top flower
-            if flower {
-                for i in 0..top_spike_count {
-                    let angle = PI + (i as f32 * std::f32::consts::TAU / top_spike_count as f32);
-
-                    parent.spawn((
-                        Mesh2d(meshes.add(Rectangle::new(spike_width, spike_length)).into()),
-                        MeshMaterial2d(materials.add(Color::WHITE)),
-                        Transform::from_xyz(0.0, trunk_height + circle_radius, 0.5)
-                            .with_rotation(Quat::from_rotation_z(angle)),
-                    ));
-                }
+                root.spawn((
+                    Mesh2d(meshes.add(Rectangle::new(spike_width, spike_length)).into()),
+                    MeshMaterial2d(materials.add(Color::WHITE)),
+                    Transform::from_xyz(0.0, trunk_height + circle_radius, 0.5)
+                        .with_rotation(Quat::from_rotation_z(angle)),
+                ));
             }
-        });
+        }
 
-        // Generate the arms
-        let x_multi = [1.0, -1.0];
-        let curve_radius = arm_length;
-
-        for i in 0..2 {
-            commands.entity(cactus_entity).with_children(|parent| {
+        // Main trunk
+        root.spawn((
+            CactusTrunk{is_hit: false},
+            Mesh2d(meshes.add(Rectangle::new(trunk_width, trunk_height)).into()),
+            MeshMaterial2d(materials.add(cactus_texture.0.clone())),
+            Transform::from_xyz(0.0, trunk_height / 2.0, 0.6),
+            Collider{size: Vec2::new(trunk_width + 2.0 * arm_width - arm_length / 2.0, trunk_height)}
+        )).with_children(|trunk| {
+            // Generate cactus arms
+            let x_multi = [1.0, -1.0];
+            let curve_radius = arm_length;
+            for i in 0..2 {
                 let arm_highness = rng.gen_range(min_arm_highness..=max_arm_highness);
                 let caps_length = (curve_radius * ((rng.next_u32() % 3 + 1) as f32)).min(trunk_height - arm_highness);
 
-                parent.spawn((
-                        CactusArm,
-                        Transform::from_xyz(10.0 * x_multi[i], arm_highness, 0.0),
-                        Visibility::Visible,
-                    ))
-                    .with_children(|arm| {
-                        // Horizontal side arm
-                        let rect_width = arm_width - curve_radius;
-                        arm.spawn((
-                            Mesh2d(meshes.add(Rectangle::new(rect_width, arm_length)).into()),
-                            MeshMaterial2d(materials.add(cactus_texture.0.clone())),
-                            Transform::from_xyz(x_multi[i] * (rect_width / 2.0), 0., 0.2),
-                        ));
+                trunk.spawn((CactusArm,
+                    Transform::from_xyz(10.0 * x_multi[i], arm_highness-trunk_height / 2.0, -0.6),  // offset the transform of the trunk
+                    Visibility::Visible)).with_children(|arm| {
 
-                        // Curved segment to add texture noise between the horizontal and vertical segments
-                        arm.spawn((
-                            Mesh2d(meshes.add(CircularSector::from_radians(curve_radius, PI / 4.0)).into()),
-                            MeshMaterial2d(materials.add(cactus_texture.0.clone())),
-                            Transform::from_xyz(x_multi[i] * (arm_width - curve_radius), arm_length / 2.0, 0.3)
-                                .with_rotation(Quat::from_rotation_z(x_multi[i] * PI)),
-                        ));
+                    // Horizontal side arm
+                    let rect_width = arm_width - curve_radius;
+                    arm.spawn((
+                        Mesh2d(meshes.add(Rectangle::new(rect_width, arm_length)).into()),
+                        MeshMaterial2d(materials.add(cactus_texture.0.clone())),
+                        Transform::from_xyz(x_multi[i] * (rect_width / 2.0), 0., 0.2),
+                    ));
 
-                        // Vertical capsule
-                        arm.spawn((
-                            Mesh2d(meshes.add(Capsule2d::new(curve_radius / 2.0, caps_length)).into()),
-                            MeshMaterial2d(materials.add(cactus_texture.0.clone())),
-                            Transform::from_xyz(x_multi[i] * (arm_width - curve_radius / 2.0), caps_length / 2.0, 0.4),
-                        ));
+                    // Curved segment to add texture noise between the horizontal and vertical segments
+                    arm.spawn((
+                        Mesh2d(meshes.add(CircularSector::from_radians(curve_radius, PI / 4.0)).into()),
+                        MeshMaterial2d(materials.add(cactus_texture.0.clone())),
+                        Transform::from_xyz(x_multi[i] * (arm_width - curve_radius), arm_length / 2.0, 0.3)
+                            .with_rotation(Quat::from_rotation_z(x_multi[i] * PI)),
+                    ));
 
-                        // Side arm flowers
-                        if flower {
-                            for j in 0..top_spike_count {
-                                let angle = PI + (j as f32 * std::f32::consts::TAU / top_spike_count as f32);
+                    // Vertical capsule
+                    arm.spawn((
+                        Mesh2d(meshes.add(Capsule2d::new(curve_radius / 2.0, caps_length)).into()),
+                        MeshMaterial2d(materials.add(cactus_texture.0.clone())),
+                        Transform::from_xyz(x_multi[i] * (arm_width - curve_radius / 2.0), caps_length / 2.0, 0.4),
+                    ));
 
-                                arm.spawn((
-                                    Mesh2d(meshes.add(Rectangle::new(spike_width, spike_length)).into()),
-                                    MeshMaterial2d(materials.add(Color::WHITE)),
-                                    Transform::from_xyz(x_multi[i] * (arm_width - curve_radius / 2.0), caps_length + curve_radius / 2.0, 0.5)
-                                        .with_rotation(Quat::from_rotation_z(angle)),
-                                ));
-                            }
-                        };
-                    });
-            });
-        }
+                    // Side arm flowers
+                    if flower {
+                        for j in 0..top_spike_count {
+                            let angle = PI + (j as f32 * std::f32::consts::TAU / top_spike_count as f32);
+
+                            arm.spawn((
+                                Mesh2d(meshes.add(Rectangle::new(spike_width, spike_length)).into()),
+                                MeshMaterial2d(materials.add(Color::WHITE)),
+                                Transform::from_xyz(x_multi[i] * (arm_width - curve_radius / 2.0), caps_length + curve_radius / 2.0, 0.5)
+                                    .with_rotation(Quat::from_rotation_z(angle)),
+                            ));
+                        }
+                    };
+                });
+            }
+        });
+    });
 }
