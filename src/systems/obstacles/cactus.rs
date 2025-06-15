@@ -1,4 +1,4 @@
-use crate::components::{CactusArm, CactusTrunk, Collider, CactusRoot, CactusChild, HealthPickup, Velocity};
+use crate::components::{CactusArm, CactusChild, CactusRoot, CactusTrunk, Collider, Velocity};
 use crate::resources::CactusTexture;
 use bevy::asset::Assets;
 use bevy::color::Color;

@@ -23,13 +23,13 @@ pub fn detect_collision(
                 // if player collided...
                 if is_colliding(player_transform.translation(), player_half, transform.translation(), collider.size / 2.0) {
                     // ...with a cactus
-                    if let Ok((mut trunk_collider, parent)) = cactus_trunk_collider.get_mut(entity) {
+                    if let Ok((trunk_collider, parent)) = cactus_trunk_collider.get_mut(entity) {
                         // get the cactus trunk
                         if let Ok((mut trunk, children)) = cactus_trunk_query.get_mut(**parent) {
                             trunk.is_hit = true;
                             // reset cactus arm velocity to 0
                             for &child in children {
-                                if let Ok((mut velocity)) = cactus_arm_query.get_mut(child) {
+                                if let Ok(mut velocity) = cactus_arm_query.get_mut(child) {
                                     velocity.0.y = 0.;
                                 }
                             }
@@ -41,7 +41,7 @@ pub fn detect_collision(
                         commands.entity(entity).despawn();
                         health.0 = health.0.saturating_add(1);
                     }
-                    return;
+                    // return;
                 }
             }
         }
