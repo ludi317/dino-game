@@ -11,7 +11,7 @@ use rand::Rng;
 use rand_core::RngCore;
 use std::f32::consts::PI;
 
-const CACTUS_FLOWER_CHANCE: f32 = 0.3; // 30% chance to spawn a flower on top of cactus
+const CACTUS_FLOWER_CHANCE: f32 = 0.0; // 30% chance to spawn a flower on top of cactus
 
 pub fn spawn_cactus(
     mut commands: Commands,
@@ -56,9 +56,6 @@ pub fn spawn_cactus(
                 Mesh2d(meshes.add(Rectangle::new(trunk_width, trunk_height)).into()),
                 MeshMaterial2d(materials.add(cactus_texture.0.clone())),
                 Transform::from_xyz(0.0, trunk_height / 2.0, 0.6),
-                Collider {
-                    size: Vec2::new(trunk_width, trunk_height),
-                },
             ));
 
             // Circle top
@@ -94,6 +91,7 @@ pub fn spawn_cactus(
                 parent.spawn((
                         Transform::from_xyz(10.0 * x_multi[i], arm_highness, 0.0),
                         Visibility::Visible,
+                        Collider{size: Vec2::new(trunk_width, trunk_height)}
                     ))
                     .with_children(|arm| {
                         // Horizontal side arm
