@@ -1,11 +1,11 @@
-use crate::components::{HealthPickup, Obstacle, Player};
+use crate::components::{HealthPickup, CactusRoot, Player};
 use bevy::math::{UVec2, Vec2};
 use bevy::prelude::{default, Camera, Camera2d, Commands, Entity, EventWriter, Or, Query, Transform, With};
 use bevy_parallax::{CreateParallaxEvent, LayerData, LayerSpeed, ParallaxCameraComponent, ParallaxMoveEvent};
 
 pub fn move_camera_system(
     mut move_event_writer: EventWriter<ParallaxMoveEvent>,
-    mut transforms: Query<&mut Transform, Or<(With<Player>, With<Obstacle>, With<HealthPickup>)>>,
+    mut transforms: Query<&mut Transform, Or<(With<Player>, With<CactusRoot>, With<HealthPickup>)>>,
     camera_query: Query<Entity, With<Camera>>,
 ) {
     let camera = camera_query.single();

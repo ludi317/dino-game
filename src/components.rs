@@ -8,7 +8,7 @@ pub struct Player;
 pub struct Velocity(pub Vec3);
 
 #[derive(Component)]
-pub struct Obstacle;
+pub struct CactusRoot;
 
 #[derive(Component)]
 pub struct HealthPickup;

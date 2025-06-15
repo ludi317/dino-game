@@ -1,4 +1,4 @@
-use crate::components::{Collider, HealthPickup, Obstacle, Sand};
+use crate::components::{CactusArm, CactusTrunk, Collider, HealthPickup, CactusRoot, Sand};
 use crate::constants::{GAME_SPEED, GROUND_LEVEL, HEALTH_PICKUP_SIZE};
 use crate::resources::{AnimationState, CactusTexture, Cheeseburger, ObstacleSpawningTimer};
 use crate::systems::obstacles::cactus::spawn_cactus;
@@ -30,7 +30,7 @@ pub fn move_obstacles(
     time: Res<Time>,
     mut commands: Commands,
     mut transforms: ParamSet<(
-        Query<(Entity, &mut Transform), With<Obstacle>>,
+        Query<(Entity, &mut Transform), With<CactusRoot>>,
         Query<(Entity, &mut Transform), With<HealthPickup>>,
     )>,
 ) {
