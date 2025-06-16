@@ -6,7 +6,7 @@ use bevy::prelude::{Resource, Timer};
 pub struct ObstacleSpawningTimer(pub Timer);
 
 #[derive(Resource, Clone)]
-pub struct Cheeseburger(pub Handle<Image>);
+pub struct HealthPickUpImg(pub Handle<Image>);
 
 #[derive(Resource, Clone)]
 pub struct PterodactylFly(pub Handle<Image>);
@@ -16,7 +16,6 @@ pub struct PterodactylDie(pub Handle<Image>);
 
 #[derive(Resource, Clone)]
 pub struct CactusTexture(pub Handle<Image>);
-
 
 #[derive(Resource)]
 pub struct AnimationState {

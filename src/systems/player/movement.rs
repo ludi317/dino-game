@@ -1,4 +1,4 @@
-use crate::components::{AnimationIndices, AnimationTimer, CactusArm, OriginalSize, Player, Pterodactyl, Velocity};
+use crate::components::{AnimationIndices, AnimationTimer, CactusArm, OriginalSize, Player, Velocity};
 use crate::constants::GROUND_LEVEL;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::input::ButtonState;

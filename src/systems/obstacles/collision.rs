@@ -1,7 +1,7 @@
 use bevy::color::palettes::basic::RED;
 use bevy::prelude::*;
 
-use crate::components::{AnimationIndices, CactusArm, CactusCollider, Collider, Health, HealthPickup, IsHit, Player, Pterodactyl, PterodactylCollider, Velocity};
+use crate::components::{AnimationIndices, CactusArm, CactusCollider, Collider, Health, HealthPickup, IsHit, Player, PterodactylCollider, Velocity};
 use crate::constants::{PTERO_SIZE_X, PTERO_SIZE_Y};
 use crate::resources::PterodactylDie;
 

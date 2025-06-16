@@ -1,6 +1,6 @@
 use crate::components::{AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, OriginalSize, Player, Sand, Velocity};
 use crate::constants::{GROUND_LEVEL, INITIAL_HEALTH, PTERO_TIMER_INTERVAL};
-use crate::resources::{CactusTexture, Cheeseburger, PterodactylDie, PterodactylFly};
+use crate::resources::{CactusTexture, HealthPickUpImg, PterodactylDie, PterodactylFly};
 use bevy::asset::AssetServer;
 use bevy::prelude::*;
 use bevy::sprite::{Anchor, Sprite, TextureAtlas, TextureAtlasLayout};
@@ -20,7 +20,7 @@ pub fn setup(mut commands: Commands,
     let layout = TextureAtlasLayout::from_grid(UVec2::new(PLAYER_SIZE_X, PLAYER_SIZE_Y), 4, 4, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
-    commands.insert_resource(Cheeseburger(asset_server.load("cheeseburger.png")));
+    commands.insert_resource(HealthPickUpImg(asset_server.load("chocolate_icing_chocolate_drizzle.png")));
     commands.insert_resource(CactusTexture(asset_server.load("cactus texture.png")));
     commands.insert_resource(PterodactylFly(asset_server.load("blue_pterodactyl_flying.png")));
     commands.insert_resource(PterodactylDie(asset_server.load("blue_pterodactyl_die.png")));

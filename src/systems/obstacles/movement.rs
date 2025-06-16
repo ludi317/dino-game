@@ -1,6 +1,6 @@
 use crate::components::{AnimationIndices, AnimationTimer, CactusArm, CactusRoot, Collider, HealthPickup, IsHit, Pterodactyl, PterodactylCollider, Sand, Velocity};
 use crate::constants::{CAMERA_SPEED, GAME_SPEED, GROUND_LEVEL, PTERO_SIZE, PTERO_SIZE_X, PTERO_SIZE_Y};
-use crate::resources::{AnimationState, CactusTexture, Cheeseburger, ObstacleSpawningTimer, PterodactylFly};
+use crate::resources::{AnimationState, CactusTexture, HealthPickUpImg, ObstacleSpawningTimer, PterodactylFly};
 use crate::systems::obstacles::cactus::spawn_cactus;
 use bevy::prelude::*;
 use bevy_prng::WyRand;
@@ -14,8 +14,10 @@ const SKY_SPAWN_CHANCE: f32 = 0.3;
 const SKY_OFFSET: f32 = GROUND_LEVEL + 300.0;
 const FLY_SPEED: f32 = 100.0;
 
-const HEALTH_SCALE: f32 = 0.5;
-const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(77.0 * HEALTH_SCALE, 70.0 * HEALTH_SCALE);
+const HEALTH_SIZE_X: u32 = 544;
+const HEALTH_SIZE_Y: u32 = 457;
+const HEALTH_SCALE: f32 = 40./HEALTH_SIZE_X as f32;
+const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(HEALTH_SIZE_X as f32 * HEALTH_SCALE, HEALTH_SIZE_Y as f32 * HEALTH_SCALE);
 
 const SKY_OBSTACLE_CHANCE : f32 = 0.5;
 
@@ -81,7 +83,7 @@ pub fn spawn_obstacles(
     mut commands: Commands,
     time: Res<Time>,
     mut spawn_timer: ResMut<ObstacleSpawningTimer>,
-    cheeseburger: ResMut<Cheeseburger>,
+    health_pickup: ResMut<HealthPickUpImg>,
     cactus_texture: ResMut<CactusTexture>,
     pterodactyl_fly: ResMut<PterodactylFly>,
     mut rng: GlobalEntropy<WyRand>,
@@ -130,11 +132,11 @@ pub fn spawn_obstacles(
                     ));
                 });
             } else {
-                // cheeseburger
+                // food
                 commands.spawn((
                     HealthPickup,
                     Sprite {
-                        image: cheeseburger.0.clone(),
+                        image: health_pickup.0.clone(),
                         custom_size: Some(HEALTH_PICKUP_SIZE),
                         ..default()
                     },
