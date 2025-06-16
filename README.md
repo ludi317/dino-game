@@ -1,4 +1,6 @@
 ## Play the game [here](https://superb-cannoli-87eda6.netlify.app/)!
+- Avoid cacti and pterodactyls
+- Consume donuts
 
 ## Controls
 - Spacebar or up arrow to jump. On mobile, touch screen. 
