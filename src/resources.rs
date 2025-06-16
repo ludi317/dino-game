@@ -9,6 +9,12 @@ pub struct ObstacleSpawningTimer(pub Timer);
 pub struct Cheeseburger(pub Handle<Image>);
 
 #[derive(Resource, Clone)]
+pub struct PterodactylFly(pub Handle<Image>);
+
+#[derive(Resource, Clone)]
+pub struct PterodactylDie(pub Handle<Image>);
+
+#[derive(Resource, Clone)]
 pub struct CactusTexture(pub Handle<Image>);
 
 

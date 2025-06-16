@@ -1,7 +1,14 @@
+use bevy::math::Vec2;
+
 pub const GROUND_LEVEL: f32 = -250.0;
 pub const GAME_SPEED: f32 = 500.0;
 pub const CAMERA_SPEED: f32 = 3.0;
 
+pub const PTERO_SIZE_X: u32 = 862;
+pub const PTERO_SIZE_Y: u32 = 970;
+const PTERO_SCALE: f32 = 100. / PTERO_SIZE_X as f32;
+pub const PTERO_SIZE: Vec2 = Vec2::new(PTERO_SIZE_X as f32 * PTERO_SCALE, PTERO_SIZE_Y as f32 * PTERO_SCALE);
+pub const PTERO_TIMER_INTERVAL: f32 = 0.07;
 #[cfg(debug_assertions)] // Development mode
 pub const INITIAL_HEALTH: usize = 999;
 

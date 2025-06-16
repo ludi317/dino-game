@@ -1,6 +1,6 @@
 use crate::components::{AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, OriginalSize, Player, Sand, Velocity};
-use crate::constants::{GROUND_LEVEL, INITIAL_HEALTH};
-use crate::resources::{CactusTexture, Cheeseburger};
+use crate::constants::{GROUND_LEVEL, INITIAL_HEALTH, PTERO_TIMER_INTERVAL};
+use crate::resources::{CactusTexture, Cheeseburger, PterodactylDie, PterodactylFly};
 use bevy::asset::AssetServer;
 use bevy::prelude::*;
 use bevy::sprite::{Anchor, Sprite, TextureAtlas, TextureAtlasLayout};
@@ -19,10 +19,11 @@ pub fn setup(mut commands: Commands,
     let texture = asset_server.load("purple_trex_run.png");
     let layout = TextureAtlasLayout::from_grid(UVec2::new(PLAYER_SIZE_X, PLAYER_SIZE_Y), 4, 4, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_indices = AnimationIndices { first: 0, last: 15 };
 
     commands.insert_resource(Cheeseburger(asset_server.load("cheeseburger.png")));
     commands.insert_resource(CactusTexture(asset_server.load("cactus texture.png")));
+    commands.insert_resource(PterodactylFly(asset_server.load("blue_pterodactyl_flying.png")));
+    commands.insert_resource(PterodactylDie(asset_server.load("blue_pterodactyl_die.png")));
 
     // Player
     commands.spawn((
@@ -31,7 +32,7 @@ pub fn setup(mut commands: Commands,
             image: texture,
             texture_atlas: Some(TextureAtlas {
                 layout: texture_atlas_layout,
-                index: animation_indices.first,
+                index: 0,
             }),
             flip_x: true,
             custom_size: Some(PLAYER_SIZE),
@@ -41,8 +42,8 @@ pub fn setup(mut commands: Commands,
         Velocity(Vec3::ZERO),
         Health(INITIAL_HEALTH),
         OriginalSize(PLAYER_SIZE),
-        animation_indices,
-        AnimationTimer(Timer::from_seconds(0.07, TimerMode::Repeating)),
+        AnimationIndices { first: 0, last: 15 },
+        AnimationTimer(Timer::from_seconds(PTERO_TIMER_INTERVAL, TimerMode::Repeating)),
     )).with_children(|player| {
         player.spawn((
             Collider {

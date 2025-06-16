@@ -53,3 +53,9 @@ pub struct CactusCollider;
 
 #[derive(Component)]
 pub struct IsHit(pub bool);
+
+#[derive(Component)]
+pub struct Pterodactyl;
+
+#[derive(Component)]
+pub struct PterodactylCollider;

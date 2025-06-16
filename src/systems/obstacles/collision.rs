@@ -1,15 +1,20 @@
-use bevy::prelude::*;
 use bevy::color::palettes::basic::RED;
+use bevy::prelude::*;
 
-use crate::components::{CactusArm, CactusCollider, Collider, Health, HealthPickup, IsHit, Player, Velocity};
+use crate::components::{AnimationIndices, CactusArm, CactusCollider, Collider, Health, HealthPickup, IsHit, Player, Pterodactyl, PterodactylCollider, Velocity};
+use crate::constants::{PTERO_SIZE_X, PTERO_SIZE_Y};
+use crate::resources::PterodactylDie;
 
 pub fn detect_collision(
     mut commands: Commands,
     mut player_query: Query<(&Children, &mut Health), With<Player>>,
     player_collider_query: Query<(&GlobalTransform, &Collider)>,
-
-    collider_query: Query<(&GlobalTransform, &Collider, Entity), Or<(With<CactusCollider>, With<HealthPickup>)>>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    pterodactyl_die: ResMut<PterodactylDie>,
+    collider_query: Query<(&GlobalTransform, &Collider, Entity), Or<(With<CactusCollider>, With<HealthPickup>, With<PterodactylCollider>)>>,
     mut cactus_collider: Query<&Parent, With<CactusCollider>>,
+    mut pterodactyl_parent_query: Query<&Parent, With<PterodactylCollider>>,
+    mut pterodactyl_query: Query<(&mut Sprite, &mut AnimationIndices, &mut IsHit), Without<CactusArm>>,
     mut children_query: Query<&Children>,
     mut cactus_arm_query: Query<(&mut IsHit, &mut Velocity), With<CactusArm>>,
 ) {
@@ -36,12 +41,26 @@ pub fn detect_collision(
                         }
                         health.0 = health.0.saturating_sub(1);
 
-                    // ...with a cheeseburger
+                   // ...with a pterodactyl
+                    } else if let Ok(parent) = pterodactyl_parent_query.get_mut(entity) {
+                        if let Ok((mut ptero_sprite, mut anim_indices, mut is_hit)) = pterodactyl_query.get_mut(**parent) {
+                            let layout = TextureAtlasLayout::from_grid(UVec2::new(PTERO_SIZE_X, PTERO_SIZE_Y), 4, 1, None, None);
+                            let texture_atlas_layout = texture_atlas_layouts.add(layout);
+
+                            ptero_sprite.image = pterodactyl_die.0.clone();
+                            ptero_sprite.texture_atlas = Some(TextureAtlas{
+                                layout: texture_atlas_layout,
+                                index: 0,
+                            });
+                            anim_indices.last = 3;
+                            is_hit.0 = true;
+                            health.0 = health.0.saturating_sub(1);
+                        }
+                    // ...with a health pickup
                     } else {
                         health.0 = health.0.saturating_add(1);
                     }
                     commands.entity(entity).despawn();
-                    // return;
                 }
             }
         }
@@ -56,39 +75,10 @@ pub fn is_colliding(pos1: Vec3, half_size1: Vec2, pos2: Vec3, half_size2: Vec2) 
 
 #[allow(dead_code)]
 pub fn debug_collider_outlines(
-    query: Query<(&GlobalTransform, &Collider), Or<(With<CactusCollider>, With<HealthPickup>)>>,
-    player_query: Query<&Children, With<Player>>,
     collider_query: Query<(&GlobalTransform, &Collider)>,
-    mut gizmos: Gizmos,
-) {
-    for (transform, collider) in &query {
-        // Calculate half sizes
-        let half_width = collider.size.x / 2.0;
-        let half_height = collider.size.y / 2.0;
-
-        // Define the four corners of the collider in local space
-        let corners = [
-            Vec2::new(-half_width, -half_height), // Bottom-left
-            Vec2::new(half_width, -half_height),  // Bottom-right
-            Vec2::new(half_width, half_height),   // Top-right
-            Vec2::new(-half_width, half_height),  // Top-left
-        ];
-
-        // Convert corners to world space and draw lines between them
-        for i in 0..4 {
-            let start = transform.transform_point(corners[i].extend(0.0));
-            let end = transform.transform_point(corners[(i + 1) % 4].extend(0.0));
-
-            gizmos.line_2d(
-                start.truncate(),
-                end.truncate(),
-                RED, // You can customize the color
-            );
-        }
-    }
-
-    let player_collider = player_query.single().first().unwrap();
-    if let Ok((transform, collider)) = collider_query.get(*player_collider) {
+    mut gizmos: Gizmos)
+{
+    for (transform, collider) in collider_query.iter() {
         // Calculate half sizes
         let half_width = collider.size.x / 2.0;
         let half_height = collider.size.y / 2.0;

@@ -1,6 +1,6 @@
-use crate::components::{CactusArm, CactusRoot, Collider, HealthPickup, IsHit, Sand, Velocity};
-use crate::constants::{CAMERA_SPEED, GAME_SPEED, GROUND_LEVEL};
-use crate::resources::{AnimationState, CactusTexture, Cheeseburger, ObstacleSpawningTimer};
+use crate::components::{AnimationIndices, AnimationTimer, CactusArm, CactusRoot, Collider, HealthPickup, IsHit, Pterodactyl, PterodactylCollider, Sand, Velocity};
+use crate::constants::{CAMERA_SPEED, GAME_SPEED, GROUND_LEVEL, PTERO_SIZE, PTERO_SIZE_X, PTERO_SIZE_Y};
+use crate::resources::{AnimationState, CactusTexture, Cheeseburger, ObstacleSpawningTimer, PterodactylFly};
 use crate::systems::obstacles::cactus::spawn_cactus;
 use bevy::prelude::*;
 use bevy_prng::WyRand;
@@ -10,12 +10,14 @@ use rand_core::RngCore;
 
 const GROUND_SIZE: Vec2 = Vec2::new(1400.0, 10.0);
 const GROUND_EDGE: f32 = GROUND_SIZE.x / 2.0;
-const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.3;
+const SKY_SPAWN_CHANCE: f32 = 0.3;
 const SKY_OFFSET: f32 = GROUND_LEVEL + 300.0;
 const FLY_SPEED: f32 = 100.0;
 
 const HEALTH_SCALE: f32 = 0.5;
 const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(77.0 * HEALTH_SCALE, 70.0 * HEALTH_SCALE);
+
+const SKY_OBSTACLE_CHANCE : f32 = 0.5;
 
 pub fn move_ground(
     // https://bevy.org/examples/2d-rendering/sprite-tile/
@@ -29,16 +31,16 @@ pub fn move_ground(
     transform.translation.x += CAMERA_SPEED;
 }
 
-pub fn move_obstacles_y(time: Res<Time>,
-                        mut arms_query: Query<(&IsHit, &mut Transform, &mut Velocity), With<CactusArm>>) {
+pub fn drop_obstacles(time: Res<Time>,
+                      mut transforms: Query<(&IsHit, &mut Transform, &mut Velocity), Or<(With<Pterodactyl>, With<CactusArm>)>>) {
     let mut ang_vel = 8.0;
-    for (is_hit, mut transform, mut velocity) in arms_query.iter_mut() {
+    for (is_hit, mut transform, mut velocity) in transforms.iter_mut() {
         if is_hit.0 {
             transform.translation.z = -0.1; // found by trial and error
             transform.translation.y += velocity.0.y * time.delta_secs();
             ang_vel *= -1.;
             transform.rotate_z(ang_vel*time.delta_secs());
-            if transform.translation.y <= GROUND_LEVEL + 200.{
+            if transform.translation.y <= GROUND_LEVEL + 200. {
                 transform.translation.y = GROUND_LEVEL + 200.;
                 velocity.0.y = 0.0;
                 transform.rotate_z(-1.0 * ang_vel * time.delta_secs());
@@ -47,28 +49,30 @@ pub fn move_obstacles_y(time: Res<Time>,
     }
 }
 
-
-pub fn move_obstacles(
+pub fn move_sky_obstacles(
     time: Res<Time>,
     mut commands: Commands,
-    mut transforms: ParamSet<(
-        Query<(Entity, &mut Transform), With<CactusRoot>>,
-        Query<(Entity, &mut Transform), With<HealthPickup>>,
-    )>,
+    mut transforms: Query<(Entity, &mut Transform), Or<(With<HealthPickup>, With<Pterodactyl>)>>,
 ) {
     // Move obstacles
-    for (entity, mut transform) in transforms.p0().iter_mut() {
-        transform.translation.x -= GAME_SPEED * time.delta_secs();
+    for (entity, mut transform) in transforms.iter_mut() {
+        transform.translation.x -= (GAME_SPEED + FLY_SPEED) * time.delta_secs();
         if transform.translation.x < -GROUND_EDGE {
             commands.entity(entity).try_despawn_recursive();
         }
     }
+}
 
-    // Move health pickups
-    for (entity, mut transform) in transforms.p1().iter_mut() {
-        transform.translation.x -= (GAME_SPEED + FLY_SPEED) * time.delta_secs();
+pub fn move_ground_obstacles(
+    time: Res<Time>,
+    mut commands: Commands,
+    mut transforms: Query<(Entity, &mut Transform), With<CactusRoot>>,
+) {
+    // Move obstacles
+    for (entity, mut transform) in transforms.iter_mut() {
+        transform.translation.x -= GAME_SPEED * time.delta_secs();
         if transform.translation.x < -GROUND_EDGE {
-            commands.entity(entity).try_despawn();
+            commands.entity(entity).try_despawn_recursive();
         }
     }
 }
@@ -79,32 +83,68 @@ pub fn spawn_obstacles(
     mut spawn_timer: ResMut<ObstacleSpawningTimer>,
     cheeseburger: ResMut<Cheeseburger>,
     cactus_texture: ResMut<CactusTexture>,
+    pterodactyl_fly: ResMut<PterodactylFly>,
     mut rng: GlobalEntropy<WyRand>,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<ColorMaterial>>,
     camera_query: Query<&Transform, With<Camera>>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>
 ) {
     spawn_timer.0.tick(time.delta());
     if spawn_timer.0.finished() {
         let camera_transform = camera_query.single();
         let obstacle_x = camera_transform.translation.x + GROUND_EDGE + 200.0 + rng.next_u32() as f32 % 300.0 - 150.0;
-
+        let rand_n = rng.next_u32() % 100;
         // Randomly decide whether to spawn obstacle or health pickup
-        if rng.next_u32() % 100 < (HEALTH_PICKUP_SPAWN_CHANCE * 100.0) as u32 {
+        if rand_n < (SKY_SPAWN_CHANCE * 100.0) as u32 {
             let obstacle_y = SKY_OFFSET + rng.next_u32() as f32 % 300.0 - 150.0;
-            // Spawn health pickup
-            commands.spawn((
-                HealthPickup,
-                Sprite {
-                    image: cheeseburger.0.clone(),
-                    custom_size: Some(HEALTH_PICKUP_SIZE),
-                    ..default()
-                },
-                Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
-                Collider{
-                    size : HEALTH_PICKUP_SIZE,
-                }
-            ));
+
+            // pterodactyl
+            if rand_n < (SKY_OBSTACLE_CHANCE * SKY_SPAWN_CHANCE * 100.0) as u32 {
+                let layout = TextureAtlasLayout::from_grid(UVec2::new(PTERO_SIZE_X, PTERO_SIZE_Y), 4, 3, None, None);
+                let texture_atlas_layout = texture_atlas_layouts.add(layout);
+
+                commands.spawn((
+                    Pterodactyl,
+                    Sprite {
+                        image: pterodactyl_fly.0.clone(),
+                        texture_atlas: Some(TextureAtlas {
+                            layout: texture_atlas_layout,
+                            index: 0,
+                        }),
+                        custom_size: Some(PTERO_SIZE),
+                        ..default()
+                    },
+                    Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
+                    Velocity(Vec3::ZERO),
+                    IsHit(false),
+                    AnimationIndices { first: 0, last: 11 },
+                    AnimationTimer(Timer::from_seconds(0.07, TimerMode::Repeating)),
+                )).with_children(|ptero| {
+                    ptero.spawn((
+                        PterodactylCollider,
+                        Collider {
+                            size: PTERO_SIZE,
+                        },
+                        Transform::from_xyz(0.0, 0.0, 0.0),
+                    ));
+                });
+            } else {
+                // cheeseburger
+                commands.spawn((
+                    HealthPickup,
+                    Sprite {
+                        image: cheeseburger.0.clone(),
+                        custom_size: Some(HEALTH_PICKUP_SIZE),
+                        ..default()
+                    },
+                    Transform::from_xyz(obstacle_x, obstacle_y, 0.0),
+                    Collider{
+                        size : HEALTH_PICKUP_SIZE,
+                    }
+                ));
+            }
+
         } else {
             let obstacle_y = GROUND_LEVEL + rng.gen_range(-80.0..-20.) ;
             spawn_cactus(commands, meshes, materials,cactus_texture, Vec2::new(obstacle_x, obstacle_y), &mut rng);

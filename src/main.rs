@@ -30,11 +30,11 @@ use crate::systems::game::setup::setup;
 #[allow(unused_imports)]
 use crate::systems::obstacles::collision::{debug_collider_outlines, detect_collision};
 use crate::systems::obstacles::movement::{
-    move_ground, move_obstacles, move_obstacles_y, spawn_obstacles,
+    move_ground, move_ground_obstacles, drop_obstacles, spawn_obstacles, move_sky_obstacles,
 };
 use crate::systems::player::health::{check_health, render_health_info};
 use crate::systems::player::movement::{
-    animate_sprite, apply_gravity, crouch, jump, player_movement,
+    animate_sprite, apply_gravity, crouch, jump, drop_player,
 };
 
 use bevy::asset::AssetMetaCheck;
@@ -102,8 +102,9 @@ fn main() {
             Update,
             (
                 spawn_obstacles,
-                move_obstacles,
-                move_obstacles_y,
+                move_ground_obstacles,
+                move_sky_obstacles,
+                drop_obstacles,
                 detect_collision,
                 render_health_info,
                 check_health,
@@ -111,7 +112,7 @@ fn main() {
                 move_camera_system.before(ParallaxSystems),
                 jump,
                 apply_gravity,
-                player_movement,
+                drop_player,
                 crouch,
                 move_ground,
             )

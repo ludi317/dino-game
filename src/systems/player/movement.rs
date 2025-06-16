@@ -1,4 +1,4 @@
-use crate::components::{AnimationIndices, AnimationTimer, CactusArm, OriginalSize, Player, Velocity};
+use crate::components::{AnimationIndices, AnimationTimer, CactusArm, OriginalSize, Player, Pterodactyl, Velocity};
 use crate::constants::GROUND_LEVEL;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::input::ButtonState;
@@ -8,7 +8,7 @@ use bevy::prelude::{EventReader, KeyCode, Or, Query, Res, Sprite, Time, Touches,
 const JUMP_FORCE: f32 = 2000.0;
 const GRAVITY: f32 = -4000.0;
 
-pub fn player_movement(
+pub fn drop_player(
     time: Res<Time>,
     mut query: Query<(&mut Transform, &mut Velocity), With<Player>>,
 ) {
@@ -25,18 +25,13 @@ pub fn player_movement(
 pub fn animate_sprite(
     time: Res<Time>,
     mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite)>,
-    query2: Query<&Transform, With<Player>>,
 ) {
-    let player_transform = query2.single();
-    if player_transform.translation.y > GROUND_LEVEL {
-        return;
-    }
     for (indices, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
 
         if timer.just_finished() {
             if let Some(atlas) = &mut sprite.texture_atlas {
-                atlas.index = if atlas.index == indices.last {
+                atlas.index = if atlas.index >= indices.last {
                     indices.first
                 } else {
                     atlas.index + 1
