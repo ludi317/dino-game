@@ -1,22 +1,25 @@
 use crate::components::{AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, OriginalSize, Player, Sand, Velocity};
-use crate::constants::{GROUND_LEVEL, INITIAL_HEALTH, PLAYER_SIZE};
+use crate::constants::{GROUND_LEVEL, INITIAL_HEALTH};
 use crate::resources::{CactusTexture, Cheeseburger};
 use bevy::asset::AssetServer;
 use bevy::prelude::*;
 use bevy::sprite::{Anchor, Sprite, TextureAtlas, TextureAtlasLayout};
 
-const PLAYER_X: f32 = -300.0;
+const PLAYER_SIZE_X: u32 = 939;
+const PLAYER_SIZE_Y: u32 = 668;
+const PLAYER_SCALE: f32 = 200./ PLAYER_SIZE_X as f32;
+const PLAYER_SIZE: Vec2 = Vec2::new(PLAYER_SIZE_X as f32 * PLAYER_SCALE, PLAYER_SIZE_Y as f32 * PLAYER_SCALE);
 const HIT_BOX_SCALE_X: f32 = 0.67;
+const PLAYER_X: f32 = -300.0;
 
 pub fn setup(mut commands: Commands,
              asset_server: Res<AssetServer>,
              mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>) {
 
-    let texture = asset_server.load("dino run 1-10.png");
-    let layout = TextureAtlasLayout::from_grid(UVec2::new(1328, 768), 10, 1, None, None);
-
+    let texture = asset_server.load("purple_trex_run.png");
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(PLAYER_SIZE_X, PLAYER_SIZE_Y), 4, 4, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_indices = AnimationIndices { first: 0, last: 9 };
+    let animation_indices = AnimationIndices { first: 0, last: 15 };
 
     commands.insert_resource(Cheeseburger(asset_server.load("cheeseburger.png")));
     commands.insert_resource(CactusTexture(asset_server.load("cactus texture.png")));
@@ -30,6 +33,7 @@ pub fn setup(mut commands: Commands,
                 layout: texture_atlas_layout,
                 index: animation_indices.first,
             }),
+            flip_x: true,
             custom_size: Some(PLAYER_SIZE),
             ..default()
         },
@@ -38,11 +42,11 @@ pub fn setup(mut commands: Commands,
         Health(INITIAL_HEALTH),
         OriginalSize(PLAYER_SIZE),
         animation_indices,
-        AnimationTimer(Timer::from_seconds(0.0875, TimerMode::Repeating)),
+        AnimationTimer(Timer::from_seconds(0.07, TimerMode::Repeating)),
     )).with_children(|player| {
         player.spawn((
             Collider {
-                size: Vec2::new(PLAYER_SIZE.x * HIT_BOX_SCALE_X, PLAYER_SIZE.y),
+                size: Vec2::new( PLAYER_SIZE.x * HIT_BOX_SCALE_X, PLAYER_SIZE.y),
             },
             Transform::from_xyz(PLAYER_SIZE.x * (1. - HIT_BOX_SCALE_X) * 0.5, 0.0, 0.0),
         ));
