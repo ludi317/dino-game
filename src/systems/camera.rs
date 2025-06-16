@@ -2,6 +2,7 @@ use crate::components::{HealthPickup, CactusRoot, Player};
 use bevy::math::{UVec2, Vec2};
 use bevy::prelude::{default, Camera, Camera2d, Commands, Entity, EventWriter, Or, Query, Transform, With};
 use bevy_parallax::{CreateParallaxEvent, LayerData, LayerSpeed, ParallaxCameraComponent, ParallaxMoveEvent};
+use crate::constants::CAMERA_SPEED;
 
 pub fn move_camera_system(
     mut move_event_writer: EventWriter<ParallaxMoveEvent>,
@@ -11,13 +12,13 @@ pub fn move_camera_system(
     let camera = camera_query.single();
 
     move_event_writer.send(ParallaxMoveEvent {
-        translation: Vec2::new(3.0, 0.0),
+        translation: Vec2::new(CAMERA_SPEED, 0.0),
         rotation: 0.0,
         camera,
     });
 
     for mut transform in &mut transforms {
-        transform.translation.x += 3.0;
+        transform.translation.x += CAMERA_SPEED;
     }
 }
 

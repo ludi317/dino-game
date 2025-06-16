@@ -1,5 +1,5 @@
-use crate::components::{CactusArm, Collider, HealthPickup, CactusRoot, Sand, Velocity, IsHit};
-use crate::constants::{GAME_SPEED, GROUND_LEVEL, HEALTH_PICKUP_SIZE};
+use crate::components::{CactusArm, CactusRoot, Collider, HealthPickup, IsHit, Sand, Velocity};
+use crate::constants::{CAMERA_SPEED, GAME_SPEED, GROUND_LEVEL};
 use crate::resources::{AnimationState, CactusTexture, Cheeseburger, ObstacleSpawningTimer};
 use crate::systems::obstacles::cactus::spawn_cactus;
 use bevy::prelude::*;
@@ -14,6 +14,9 @@ const HEALTH_PICKUP_SPAWN_CHANCE: f32 = 0.3;
 const SKY_OFFSET: f32 = GROUND_LEVEL + 300.0;
 const FLY_SPEED: f32 = 100.0;
 
+const HEALTH_SCALE: f32 = 0.5;
+const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(77.0 * HEALTH_SCALE, 70.0 * HEALTH_SCALE);
+
 pub fn move_ground(
     // https://bevy.org/examples/2d-rendering/sprite-tile/
     mut sprites: Query<(&mut Transform, &mut Sprite), With<Sand>>,
@@ -23,7 +26,7 @@ pub fn move_ground(
     state.current += state.speed * time.delta_secs();
     let (mut transform, mut sprite) = sprites.single_mut();
     sprite.custom_size = Some(Vec2::new(state.current, 1080.0));
-    transform.translation.x += 3.0;
+    transform.translation.x += CAMERA_SPEED;
 }
 
 pub fn move_obstacles_y(time: Res<Time>,
@@ -108,4 +111,3 @@ pub fn spawn_obstacles(
         }
     }
 }
-
