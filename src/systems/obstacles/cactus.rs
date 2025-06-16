@@ -1,4 +1,4 @@
-use crate::components::{CactusArm, CactusCollider, CactusRoot, Collider, Velocity};
+use crate::components::{CactusArm, CactusCollider, CactusRoot, Collider, IsHit, Velocity};
 use crate::resources::CactusTexture;
 use bevy::asset::Assets;
 use bevy::color::Color;
@@ -89,7 +89,8 @@ pub fn spawn_cactus(
                 let caps_length = (curve_radius * ((rng.next_u32() % 3 + 1) as f32)).min(trunk_height - arm_highness);
 
                 trunk.spawn((
-                    CactusArm{is_hit: false},
+                    CactusArm,
+                    IsHit(false),
                     Transform::from_xyz(10.0 * x_multi[i], arm_highness-trunk_height / 2.0, -0.6),  // offset the transform of the trunk
                     Visibility::Visible,
                     Velocity(Vec3::ZERO),

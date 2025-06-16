@@ -1,4 +1,4 @@
-use crate::components::{CactusArm, Collider, HealthPickup, CactusRoot, Sand, Velocity};
+use crate::components::{CactusArm, Collider, HealthPickup, CactusRoot, Sand, Velocity, IsHit};
 use crate::constants::{GAME_SPEED, GROUND_LEVEL, HEALTH_PICKUP_SIZE};
 use crate::resources::{AnimationState, CactusTexture, Cheeseburger, ObstacleSpawningTimer};
 use crate::systems::obstacles::cactus::spawn_cactus;
@@ -27,10 +27,10 @@ pub fn move_ground(
 }
 
 pub fn move_obstacles_y(time: Res<Time>,
-                        mut arms_query: Query<(&CactusArm, &mut Transform, &mut Velocity), With<CactusArm>>) {
+                        mut arms_query: Query<(&IsHit, &mut Transform, &mut Velocity), With<CactusArm>>) {
     let mut ang_vel = 8.0;
-    for (arm, mut transform, mut velocity) in arms_query.iter_mut() {
-        if arm.is_hit {
+    for (is_hit, mut transform, mut velocity) in arms_query.iter_mut() {
+        if is_hit.0 {
             transform.translation.z = -0.1; // found by trial and error
             transform.translation.y += velocity.0.y * time.delta_secs();
             ang_vel *= -1.;

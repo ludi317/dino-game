@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::color::palettes::basic::RED;
 
-use crate::components::{CactusArm, CactusCollider, Collider, Health, HealthPickup, Player, Velocity};
+use crate::components::{CactusArm, CactusCollider, Collider, Health, HealthPickup, IsHit, Player, Velocity};
 
 pub fn detect_collision(
     mut commands: Commands,
@@ -11,7 +11,7 @@ pub fn detect_collision(
     collider_query: Query<(&GlobalTransform, &Collider, Entity), Or<(With<CactusCollider>, With<HealthPickup>)>>,
     mut cactus_collider: Query<&Parent, With<CactusCollider>>,
     mut children_query: Query<&Children>,
-    mut cactus_arm_query: Query<(&mut CactusArm, &mut Velocity), With<CactusArm>>,
+    mut cactus_arm_query: Query<(&mut IsHit, &mut Velocity), With<CactusArm>>,
 ) {
     // get player's health
     if let Ok((children, mut health)) = player_query.get_single_mut() {
@@ -28,8 +28,8 @@ pub fn detect_collision(
                         if let Ok(children) = children_query.get_mut(**parent) {
                             // reset cactus arm velocity to 0
                             for &child in children {
-                                if let Ok((mut cactus_arm, mut velocity)) = cactus_arm_query.get_mut(child) {
-                                    cactus_arm.is_hit = true;
+                                if let Ok((mut is_hit, mut velocity)) = cactus_arm_query.get_mut(child) {
+                                    is_hit.0 = true;
                                     velocity.0.y = 0.;
                                 }
                             }
