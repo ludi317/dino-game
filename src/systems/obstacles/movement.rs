@@ -19,7 +19,7 @@ const HEALTH_SIZE_Y: u32 = 457;
 const HEALTH_SCALE: f32 = 40./HEALTH_SIZE_X as f32;
 const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(HEALTH_SIZE_X as f32 * HEALTH_SCALE, HEALTH_SIZE_Y as f32 * HEALTH_SCALE);
 
-const SKY_OBSTACLE_CHANCE : f32 = 0.5;
+const SKY_OBSTACLE_CHANCE: f32 = 0.5;
 
 pub fn move_ground(
     // https://bevy.org/examples/2d-rendering/sprite-tile/

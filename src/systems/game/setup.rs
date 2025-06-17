@@ -1,4 +1,4 @@
-use crate::components::{AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, OriginalSize, Player, Sand, Velocity};
+use crate::components::{AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, OriginalSize, Player, PlayerCollider, Sand, Velocity};
 use crate::constants::{GROUND_LEVEL, INITIAL_HEALTH, PTERO_TIMER_INTERVAL};
 use crate::resources::{CactusTexture, HealthPickUpImg, PterodactylDie, PterodactylFly};
 use bevy::asset::AssetServer;
@@ -40,16 +40,17 @@ pub fn setup(mut commands: Commands,
         },
         Transform::from_xyz(PLAYER_X, GROUND_LEVEL+50., 1.0),
         Velocity(Vec3::ZERO),
-        Health(INITIAL_HEALTH),
         OriginalSize(PLAYER_SIZE),
         AnimationIndices { first: 0, last: 15 },
         AnimationTimer(Timer::from_seconds(PTERO_TIMER_INTERVAL, TimerMode::Repeating)),
     )).with_children(|player| {
         player.spawn((
+            PlayerCollider,
             Collider {
                 size: Vec2::new( PLAYER_SIZE.x * HIT_BOX_SCALE_X, PLAYER_SIZE.y),
             },
             Transform::from_xyz(PLAYER_SIZE.x * (1. - HIT_BOX_SCALE_X) * 0.5, 0.0, 0.0),
+            Health(INITIAL_HEALTH),
         ));
     });
 

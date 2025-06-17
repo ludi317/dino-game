@@ -59,3 +59,6 @@ pub struct Pterodactyl;
 
 #[derive(Component)]
 pub struct PterodactylCollider;
+
+#[derive(Component)]
+pub struct PlayerCollider;

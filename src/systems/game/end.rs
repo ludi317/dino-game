@@ -1,10 +1,10 @@
-use bevy::color::Color;
-use bevy::input::keyboard::KeyboardInput;
-use bevy::prelude::*;
-use crate::components::{GameOverText, Health, CactusRoot, Player};
+use crate::components::{CactusRoot, GameOverText, Health, PlayerCollider};
 use crate::constants::INITIAL_HEALTH;
 use crate::states::GameState;
 use crate::states::GameState::InGame;
+use bevy::color::Color;
+use bevy::input::keyboard::KeyboardInput;
+use bevy::prelude::*;
 
 pub fn game_over(mut commands: Commands) {
     commands
@@ -34,7 +34,7 @@ pub fn restart_game(
     mut commands: Commands,
     mut events: EventReader<KeyboardInput>,
     mut game_state: ResMut<NextState<GameState>>,
-    player_query: Query<Entity, With<Player>>,
+    player_query: Query<Entity, With<PlayerCollider>>,
     obstacle_query: Query<Entity, With<CactusRoot>>,
     game_over_text_query: Query<Entity, With<GameOverText>>,
 ) {
