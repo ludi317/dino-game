@@ -28,7 +28,7 @@ use crate::systems::game::end::{game_over, restart_game};
 use crate::systems::game::pause::{hide_pause_text, show_pause_text, toggle_pause};
 use crate::systems::game::setup::setup;
 #[allow(unused_imports)]
-use crate::systems::obstacles::collision::{debug_collider_outlines, detect_collision};
+use crate::systems::obstacles::collision::{debug_collider_outlines, detect_collision, draw_ground_level};
 use crate::systems::obstacles::movement::{
     move_ground, move_ground_obstacles, drop_obstacles, spawn_obstacles, move_sky_obstacles,
 };
@@ -128,7 +128,7 @@ fn main() {
 fn setup_debug_systems(app: &mut App) -> &mut App {
     #[cfg(debug_assertions)]
     {
-        app.add_systems(Update, debug_collider_outlines);
+        app.add_systems(Update, (debug_collider_outlines, draw_ground_level));
     }
     app
 }

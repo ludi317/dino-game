@@ -1,6 +1,6 @@
 use bevy::math::Vec2;
 
-pub const GROUND_LEVEL: f32 = -250.0;
+pub const GROUND_LEVEL: f32 = -300.0;
 pub const GAME_SPEED: f32 = 500.0;
 pub const CAMERA_SPEED: f32 = 3.0;
 

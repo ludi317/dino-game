@@ -11,7 +11,6 @@ use rand_core::RngCore;
 const GROUND_SIZE: Vec2 = Vec2::new(1400.0, 10.0);
 const GROUND_EDGE: f32 = GROUND_SIZE.x / 2.0;
 const SKY_SPAWN_CHANCE: f32 = 0.3;
-const SKY_OFFSET: f32 = GROUND_LEVEL + 300.0;
 const FLY_SPEED: f32 = 100.0;
 
 const HEALTH_SIZE_X: u32 = 544;
@@ -34,17 +33,22 @@ pub fn move_ground(
 }
 
 pub fn drop_obstacles(time: Res<Time>,
-                      mut transforms: Query<(&IsHit, &mut Transform, &mut Velocity), Or<(With<Pterodactyl>, With<CactusArm>)>>) {
+                      mut transforms: Query<(&IsHit, &mut Transform, &mut Velocity, &GlobalTransform), Or<(With<Pterodactyl>, With<CactusArm>)>>,
+
+) {
     let mut ang_vel = 8.0;
-    for (is_hit, mut transform, mut velocity) in transforms.iter_mut() {
+    for (is_hit, mut transform, mut velocity, gt) in transforms.iter_mut() {
         if is_hit.0 {
             transform.translation.z = -0.1; // found by trial and error
+            let orig_transform_y = transform.translation.y;
             transform.translation.y += velocity.0.y * time.delta_secs();
             ang_vel *= -1.;
             transform.rotate_z(ang_vel*time.delta_secs());
-            if transform.translation.y <= GROUND_LEVEL + 200. {
-                transform.translation.y = GROUND_LEVEL + 200.;
+            // if obstacle hit the ground
+            if gt.translation().y <= GROUND_LEVEL {
                 velocity.0.y = 0.0;
+                // undo the incremental transforms on y and z
+                transform.translation.y = orig_transform_y;
                 transform.rotate_z(-1.0 * ang_vel * time.delta_secs());
             }
         }
@@ -99,7 +103,7 @@ pub fn spawn_obstacles(
         let rand_n = rng.next_u32() % 100;
         // Randomly decide whether to spawn obstacle or health pickup
         if rand_n < (SKY_SPAWN_CHANCE * 100.0) as u32 {
-            let obstacle_y = SKY_OFFSET + rng.next_u32() as f32 % 300.0 - 150.0;
+            let obstacle_y = rng.gen_range(GROUND_LEVEL+100.0..-GROUND_LEVEL);
 
             // pterodactyl
             if rand_n < (SKY_OBSTACLE_CHANCE * SKY_SPAWN_CHANCE * 100.0) as u32 {
@@ -148,7 +152,7 @@ pub fn spawn_obstacles(
             }
 
         } else {
-            let obstacle_y = GROUND_LEVEL + rng.gen_range(-80.0..-20.) ;
+            let obstacle_y = GROUND_LEVEL;
             spawn_cactus(commands, meshes, materials,cactus_texture, Vec2::new(obstacle_x, obstacle_y), &mut rng);
         }
     }

@@ -5,10 +5,10 @@ use bevy::asset::AssetServer;
 use bevy::prelude::*;
 use bevy::sprite::{Anchor, Sprite, TextureAtlas, TextureAtlasLayout};
 
-const PLAYER_SIZE_X: u32 = 939;
-const PLAYER_SIZE_Y: u32 = 668;
-const PLAYER_SCALE: f32 = 200./ PLAYER_SIZE_X as f32;
-const PLAYER_SIZE: Vec2 = Vec2::new(PLAYER_SIZE_X as f32 * PLAYER_SCALE, PLAYER_SIZE_Y as f32 * PLAYER_SCALE);
+const PLAYER_IMG_SIZE_X: u32 = 939;
+const PLAYER_IMG_SIZE_Y: u32 = 668;
+const PLAYER_SCALE: f32 = 200./ PLAYER_IMG_SIZE_X as f32;
+const PLAYER_SIZE: Vec2 = Vec2::new(PLAYER_IMG_SIZE_X as f32 * PLAYER_SCALE, PLAYER_IMG_SIZE_Y as f32 * PLAYER_SCALE);
 const HIT_BOX_SCALE_X: f32 = 0.67;
 const PLAYER_X: f32 = -300.0;
 
@@ -17,7 +17,7 @@ pub fn setup(mut commands: Commands,
              mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>) {
 
     let texture = asset_server.load("purple_trex_run.png");
-    let layout = TextureAtlasLayout::from_grid(UVec2::new(PLAYER_SIZE_X, PLAYER_SIZE_Y), 4, 4, None, None);
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(PLAYER_IMG_SIZE_X, PLAYER_IMG_SIZE_Y), 4, 4, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
     commands.insert_resource(HealthPickUpImg(asset_server.load("chocolate_icing_chocolate_drizzle.png")));
@@ -36,9 +36,10 @@ pub fn setup(mut commands: Commands,
             }),
             flip_x: true,
             custom_size: Some(PLAYER_SIZE),
+            anchor: Anchor::BottomCenter,
             ..default()
         },
-        Transform::from_xyz(PLAYER_X, GROUND_LEVEL+50., 1.0),
+        Transform::from_xyz(PLAYER_X, 0., 1.0),
         Velocity(Vec3::ZERO),
         OriginalSize(PLAYER_SIZE),
         AnimationIndices { first: 0, last: 15 },
@@ -49,7 +50,7 @@ pub fn setup(mut commands: Commands,
             Collider {
                 size: Vec2::new( PLAYER_SIZE.x * HIT_BOX_SCALE_X, PLAYER_SIZE.y),
             },
-            Transform::from_xyz(PLAYER_SIZE.x * (1. - HIT_BOX_SCALE_X) * 0.5, 0.0, 0.0),
+            Transform::from_xyz(PLAYER_SIZE.x * (1. - HIT_BOX_SCALE_X) * 0.5, PLAYER_SIZE.y/2., 0.0),
             Health(INITIAL_HEALTH),
         ));
     });

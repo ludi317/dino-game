@@ -1,4 +1,4 @@
-use crate::components::{AnimationIndices, AnimationTimer, CactusArm, OriginalSize, Player, Velocity};
+use crate::components::{AnimationIndices, AnimationTimer, CactusArm, OriginalSize, Player, Pterodactyl, Velocity};
 use crate::constants::GROUND_LEVEL;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::input::ButtonState;
@@ -41,7 +41,7 @@ pub fn animate_sprite(
     }
 }
 
-pub fn apply_gravity(time: Res<Time>, mut query: Query<&mut Velocity, Or<(With<Player>, With<CactusArm>)>>) {
+pub fn apply_gravity(time: Res<Time>, mut query: Query<&mut Velocity, Or<(With<Player>, With<CactusArm>, With<Pterodactyl>)>>) {
     for mut velocity in query.iter_mut() {
         velocity.0.y += GRAVITY * time.delta_secs();
     }

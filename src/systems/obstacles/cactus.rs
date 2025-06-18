@@ -41,7 +41,9 @@ pub fn spawn_cactus(
     let flower = rng.next_u32() % 100 < (CACTUS_FLOWER_CHANCE * 100.0) as u32;
 
 
-    commands.spawn((CactusRoot, Transform::from_xyz(position.x, position.y, 0.0), Visibility::Visible)).with_children(|root| {
+    commands.spawn((CactusRoot,
+                    Transform::from_xyz(position.x, position.y, 0.0),
+                    Visibility::Visible)).with_children(|root| {
         // Circle top
         let circle_radius = trunk_width / 2.0;
         root.spawn((
