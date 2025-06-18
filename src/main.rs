@@ -4,7 +4,6 @@ mod resources;
 mod states;
 mod systems {
     pub mod background;
-    pub mod camera;
     pub mod game {
         pub mod end;
         pub mod pause;
@@ -26,7 +25,6 @@ use crate::resources::{AnimationState, ObstacleSpawningTimer};
 use crate::states::GameState;
 use crate::states::GameState::{GameOver, InGame};
 use crate::systems::background::{initialize_background, scroll_background};
-use crate::systems::camera::{counter_camera, initialize_camera_system, move_camera_system};
 use crate::systems::game::end::{game_over, restart_game};
 use crate::systems::game::pause::{hide_pause_text, show_pause_text, toggle_pause};
 use crate::systems::game::setup::setup;
@@ -42,7 +40,6 @@ use crate::systems::player::movement::{
 
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
-use bevy_parallax::{ParallaxPlugin, ParallaxSystems};
 use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
 
@@ -85,7 +82,6 @@ fn main() {
                     ..default()
                 }),
         )
-        .add_plugins(ParallaxPlugin)
         .insert_resource(ObstacleSpawningTimer(Timer::from_seconds(
             SPAWN_INTERVAL,
             TimerMode::Repeating,
@@ -96,7 +92,7 @@ fn main() {
             speed: GAME_SPEED * 2.0,
         })
         .insert_state(InGame)
-        .add_systems(Startup, (setup, initialize_camera_system, initialize_background))
+        .add_systems(Startup, (setup, initialize_background))
         .add_systems(Update, toggle_pause)
         .add_systems(OnEnter(GameState::Paused), show_pause_text)
         .add_systems(OnExit(GameState::Paused), hide_pause_text)
@@ -106,13 +102,11 @@ fn main() {
                 spawn_obstacles,
                 move_ground_obstacles,
                 move_sky_obstacles,
-                counter_camera,
                 drop_obstacles,
                 detect_collision,
                 render_health_info,
                 check_health,
                 animate_sprite,
-                move_camera_system.before(ParallaxSystems),
                 jump,
                 apply_gravity,
                 drop_player,

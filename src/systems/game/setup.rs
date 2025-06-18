@@ -17,6 +17,8 @@ pub fn setup(
     asset_server: Res<AssetServer>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
+
+    commands.spawn(Camera2d::default());
     let dino_run = asset_server.load("purple_trex_run.png");
     commands.insert_resource(DinoRun(dino_run.clone()));
     commands.insert_resource(HealthPickUpImg(
