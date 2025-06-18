@@ -53,7 +53,7 @@ pub fn move_sky_obstacles(
     for (entity, mut transform) in transforms.iter_mut() {
         transform.translation.x -= (GAME_SPEED + FLY_SPEED) * time.delta_secs();
         if transform.translation.x < -GROUND_EDGE {
-            commands.entity(entity).try_despawn_recursive();
+            commands.entity(entity).try_despawn();
         }
     }
 }
@@ -67,7 +67,7 @@ pub fn move_ground_obstacles(
     for (entity, mut transform) in transforms.iter_mut() {
         transform.translation.x -= GAME_SPEED * time.delta_secs();
         if transform.translation.x < -GROUND_EDGE {
-            commands.entity(entity).try_despawn_recursive();
+            commands.entity(entity).try_despawn();
         }
     }
 }
@@ -82,13 +82,11 @@ pub fn spawn_obstacles(
     mut rng: GlobalEntropy<WyRand>,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<ColorMaterial>>,
-    camera_query: Query<&Transform, With<Camera>>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>
 ) {
     spawn_timer.0.tick(time.delta());
     if spawn_timer.0.finished() {
-        let camera_transform = camera_query.single();
-        let obstacle_x = camera_transform.translation.x + GROUND_EDGE + 200.0 + rng.next_u32() as f32 % 300.0 - 150.0;
+        let obstacle_x = GROUND_EDGE + 200.0 + rng.next_u32() as f32 % 300.0 - 150.0;
         let rand_n = rng.next_u32() % 100;
         // Randomly decide whether to spawn obstacle or health pickup
         if rand_n < (SKY_SPAWN_CHANCE * 100.0) as u32 {

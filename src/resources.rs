@@ -22,9 +22,3 @@ pub struct DinoRun(pub Handle<Image>);
 
 #[derive(Resource, Clone)]
 pub struct DinoDash(pub Handle<Image>);
-
-#[derive(Resource)]
-pub struct AnimationState {
-    pub current: f32,
-    pub speed: f32,
-}

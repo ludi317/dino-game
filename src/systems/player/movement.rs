@@ -63,7 +63,7 @@ pub fn jump(
     touches: Res<Touches>,
 ) {
     for e in events.read() {
-        if let Ok((mut velocity, transform)) = query.get_single_mut() {
+        if let Ok((mut velocity, transform)) = query.single_mut() {
             if e.state.is_pressed()
                 && (e.key_code == KeyCode::Space || e.key_code == KeyCode::ArrowUp)
                 && transform.translation.y <= GROUND_LEVEL
@@ -73,7 +73,7 @@ pub fn jump(
         }
     }
     for _touch in touches.iter_just_pressed() {
-        if let Ok((mut velocity, transform)) = query.get_single_mut() {
+        if let Ok((mut velocity, transform)) = query.single_mut() {
             if transform.translation.y <= GROUND_LEVEL {
                 velocity.0.y = JUMP_FORCE;
             }
@@ -91,8 +91,8 @@ pub fn crouch(
 ) {
     for e in events.read() {
         if e.key_code == KeyCode::ArrowDown && e.state == ButtonState::Pressed {
-            let mut sprite = player_query.single_mut();
-            let (mut collider, mut transform) = player_collider.single_mut();
+            let mut sprite = player_query.single_mut().unwrap();
+            let (mut collider, mut transform) = player_collider.single_mut().unwrap();
             // switch to crouching if not already
             if sprite.custom_size != Some(DINO_DASH_SIZE) {
                 let layout = TextureAtlasLayout::from_grid(
@@ -120,8 +120,8 @@ pub fn crouch(
                 );
             }
         } else if e.key_code == KeyCode::ArrowDown && e.state == ButtonState::Released {
-            let mut sprite = player_query.single_mut();
-            let (mut collider, mut transform) = player_collider.single_mut();
+            let mut sprite = player_query.single_mut().unwrap();
+            let (mut collider, mut transform) = player_collider.single_mut().unwrap();
 
             // back to running
             let layout = TextureAtlasLayout::from_grid(

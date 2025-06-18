@@ -2,7 +2,7 @@ use crate::components::{CactusArm, CactusCollider, CactusRoot, Collider, IsHit, 
 use crate::resources::CactusTexture;
 use bevy::asset::Assets;
 use bevy::color::Color;
-use bevy::hierarchy::{BuildChildren, ChildBuild};
+// use bevy::hierarchy::{BuildChildren, ChildBuild};
 use bevy::math::{Quat, Vec2};
 use bevy::prelude::*;
 use bevy_prng::WyRand;
@@ -96,7 +96,7 @@ pub fn spawn_cactus(
                     Transform::from_xyz(10.0 * x_multi[i], arm_highness-trunk_height / 2.0, -0.6),  // offset the transform of the trunk
                     Visibility::Visible,
                     Velocity(Vec3::ZERO),
-                )).with_children(|arm| {
+                )).with_children(|arm: &mut ChildSpawnerCommands| {
 
                     // Horizontal side arm
                     let rect_width = arm_width - curve_radius;

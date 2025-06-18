@@ -13,7 +13,7 @@ pub fn scroll_background(
     mut layers: Query<(&mut Sprite, &mut Layer)>,
     time: Res<Time>,
 ) {
-    for ((mut sprite, mut layer)) in layers.iter_mut() {
+    for (mut sprite, mut layer) in layers.iter_mut() {
         layer.current_size_x += layer.speed_scale * 2.0 * GAME_SPEED * time.delta_secs();
         if layer.current_size_x >= 2.0 * (IMG_SIZE_X + WINDOW_WIDTH) {
             layer.current_size_x = (layer.current_size_x % IMG_SIZE_X) + IMG_SIZE_X;

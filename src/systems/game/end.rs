@@ -44,13 +44,13 @@ pub fn restart_game(
             game_state.set(InGame);
 
             // Reset player health
-            if let Ok(player_entity) = player_query.get_single() {
+            if let Ok(player_entity) = player_query.single() {
                 commands.entity(player_entity).insert(Health(INITIAL_HEALTH));
             }
 
             // Despawn all obstacles
             for obstacle_entity in obstacle_query.iter() {
-                commands.entity(obstacle_entity).try_despawn_recursive();
+                commands.entity(obstacle_entity).try_despawn();
             }
 
             // Despawn the "GAME OVER" text

@@ -20,8 +20,8 @@ mod systems {
     }
 }
 
-use crate::constants::{GAME_SPEED, WINDOW_WIDTH};
-use crate::resources::{AnimationState, ObstacleSpawningTimer};
+use crate::constants::WINDOW_WIDTH;
+use crate::resources::ObstacleSpawningTimer;
 use crate::states::GameState;
 use crate::states::GameState::{GameOver, InGame};
 use crate::systems::background::{initialize_background, scroll_background};
@@ -86,11 +86,6 @@ fn main() {
             SPAWN_INTERVAL,
             TimerMode::Repeating,
         )))
-        // Sand foreground
-        .insert_resource(AnimationState {
-            current: 1920.0, // sand foreground png width
-            speed: GAME_SPEED * 2.0,
-        })
         .insert_state(InGame)
         .add_systems(Startup, (setup, initialize_background))
         .add_systems(Update, toggle_pause)

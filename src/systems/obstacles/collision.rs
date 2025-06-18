@@ -10,17 +10,17 @@ pub fn detect_collision(
     mut player_collider_query: Query<(&GlobalTransform, &Collider, &mut Health), With<PlayerCollider>>,
     collider_query: Query<(&GlobalTransform, &Collider, Entity), Or<(With<CactusCollider>, With<HealthPickup>, With<PterodactylCollider>)>>,
 
-    mut cactus_collider: Query<&Parent, With<CactusCollider>>,
+    mut cactus_collider: Query<&ChildOf, With<CactusCollider>>,
     mut children_query: Query<&Children>,
     mut cactus_arm_query: Query<(&mut IsHit, &mut Velocity), With<CactusArm>>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 
-    mut pterodactyl_parent_query: Query<&Parent, With<PterodactylCollider>>,
+    mut pterodactyl_parent_query: Query<&ChildOf, With<PterodactylCollider>>,
     mut pterodactyl_query: Query<(&mut Sprite, &mut AnimationIndices, &mut IsHit, &mut Velocity), Without<CactusArm>>,
     pterodactyl_die: Res<PterodactylDie>,
 ) {
     // get player's health and collider
-    let (player_transform, player_collider, mut health) =  player_collider_query.get_single_mut().unwrap();
+    let (player_transform, player_collider, mut health) =  player_collider_query.single_mut().unwrap();
     let player_half = player_collider.size / 2.0;
 
     // query for colliders
@@ -29,7 +29,7 @@ pub fn detect_collision(
             // cactus collision
             if let Ok(parent) = cactus_collider.get_mut(entity) {
                 // get collider parent's children, aka siblings, which includes the cactus arm
-                let children = children_query.get_mut(**parent).unwrap();
+                let children = children_query.get_mut(parent.0).unwrap();
                 // reset cactus arm velocity to 0
                 for &child in children {
                     if let Ok((mut is_hit, mut velocity)) = cactus_arm_query.get_mut(child) {
@@ -41,7 +41,7 @@ pub fn detect_collision(
 
             // pterodactyl collision
             } else if let Ok(parent) = pterodactyl_parent_query.get_mut(entity) {
-                let (mut ptero_sprite, mut anim_indices, mut is_hit, mut velocity) = pterodactyl_query.get_mut(**parent).unwrap();
+                let (mut ptero_sprite, mut anim_indices, mut is_hit, mut velocity) = pterodactyl_query.get_mut(parent.0).unwrap();
                 // change animation to die
                 let layout = TextureAtlasLayout::from_grid(UVec2::new(PTERO_SIZE_X, PTERO_SIZE_Y), 4, 1, None, None);
                 let texture_atlas_layout = texture_atlas_layouts.add(layout);

@@ -1,14 +1,15 @@
 use crate::components::{
-    AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, Layer, Player, PlayerCollider,
-     Velocity,
+    AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, Player, PlayerCollider,
+    Velocity,
 };
-use crate::constants::{DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, GAME_SPEED, GROUND_LEVEL, HIT_BOX_SCALE_X, INITIAL_HEALTH, PTERO_TIMER_INTERVAL};
+use crate::constants::{DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, GROUND_LEVEL, HIT_BOX_SCALE_X, INITIAL_HEALTH, PTERO_TIMER_INTERVAL};
 use crate::resources::{
     CactusTexture, DinoDash, DinoRun, HealthPickUpImg, PterodactylDie, PterodactylFly,
 };
 use bevy::asset::AssetServer;
+use bevy::image::{TextureAtlas, TextureAtlasLayout};
 use bevy::prelude::*;
-use bevy::sprite::{Anchor, Sprite, TextureAtlas, TextureAtlasLayout};
+use bevy::sprite::{Anchor, Sprite};
 
 const PLAYER_X: f32 = -300.0;
 
