@@ -17,7 +17,7 @@ pub fn spawn_cactus(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    cactus_texture: ResMut<CactusTexture>,
+    cactus_texture: Res<CactusTexture>,
     position: Vec2,
     rng: &mut GlobalEntropy<WyRand>,
 ) {

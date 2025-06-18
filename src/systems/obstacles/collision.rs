@@ -17,7 +17,7 @@ pub fn detect_collision(
 
     mut pterodactyl_parent_query: Query<&Parent, With<PterodactylCollider>>,
     mut pterodactyl_query: Query<(&mut Sprite, &mut AnimationIndices, &mut IsHit, &mut Velocity), Without<CactusArm>>,
-    pterodactyl_die: ResMut<PterodactylDie>,
+    pterodactyl_die: Res<PterodactylDie>,
 ) {
     // get player's health and collider
     let (player_transform, player_collider, mut health) =  player_collider_query.get_single_mut().unwrap();

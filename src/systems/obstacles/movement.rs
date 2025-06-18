@@ -1,5 +1,5 @@
 use crate::components::{AnimationIndices, AnimationTimer, CactusArm, CactusRoot, Collider, HealthPickup, IsHit, Pterodactyl, PterodactylCollider, Sand, Velocity};
-use crate::constants::{CAMERA_SPEED, GAME_SPEED, GROUND_LEVEL, PTERO_SIZE, PTERO_SIZE_X, PTERO_SIZE_Y, SAND_SIZE_X, SAND_SIZE_Y, WINDOW_WIDTH};
+use crate::constants::{GAME_SPEED, GROUND_LEVEL, PTERO_SIZE, PTERO_SIZE_X, PTERO_SIZE_Y, SAND_SIZE_X, SAND_SIZE_Y, WINDOW_WIDTH};
 use crate::resources::{AnimationState, CactusTexture, HealthPickUpImg, ObstacleSpawningTimer, PterodactylFly};
 use crate::systems::obstacles::cactus::spawn_cactus;
 use bevy::prelude::*;
@@ -18,7 +18,7 @@ const HEALTH_SIZE_Y: u32 = 457;
 const HEALTH_SCALE: f32 = 40./HEALTH_SIZE_X as f32;
 const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(HEALTH_SIZE_X as f32 * HEALTH_SCALE, HEALTH_SIZE_Y as f32 * HEALTH_SCALE);
 
-const SKY_OBSTACLE_CHANCE: f32 = 1.0;
+const SKY_OBSTACLE_CHANCE: f32 = 0.5;
 
 
 pub fn move_ground(
@@ -90,9 +90,9 @@ pub fn spawn_obstacles(
     mut commands: Commands,
     time: Res<Time>,
     mut spawn_timer: ResMut<ObstacleSpawningTimer>,
-    health_pickup: ResMut<HealthPickUpImg>,
-    cactus_texture: ResMut<CactusTexture>,
-    pterodactyl_fly: ResMut<PterodactylFly>,
+    health_pickup: Res<HealthPickUpImg>,
+    cactus_texture: Res<CactusTexture>,
+    pterodactyl_fly: Res<PterodactylFly>,
     mut rng: GlobalEntropy<WyRand>,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<ColorMaterial>>,
