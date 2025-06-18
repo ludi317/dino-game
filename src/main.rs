@@ -23,7 +23,7 @@ mod systems {
 use crate::resources::{AnimationState, ObstacleSpawningTimer};
 use crate::states::GameState;
 use crate::states::GameState::{GameOver, InGame};
-use crate::systems::camera::{initialize_camera_system, move_camera_system};
+use crate::systems::camera::{initialize_camera_system, move_camera_system, counter_camera};
 use crate::systems::game::end::{game_over, restart_game};
 use crate::systems::game::pause::{hide_pause_text, show_pause_text, toggle_pause};
 use crate::systems::game::setup::setup;
@@ -104,6 +104,7 @@ fn main() {
                 spawn_obstacles,
                 move_ground_obstacles,
                 move_sky_obstacles,
+                counter_camera,
                 drop_obstacles,
                 detect_collision,
                 render_health_info,
