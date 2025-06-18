@@ -3,6 +3,7 @@ mod constants;
 mod resources;
 mod states;
 mod systems {
+    pub mod background;
     pub mod camera;
     pub mod game {
         pub mod end;
@@ -20,21 +21,23 @@ mod systems {
     }
 }
 
+use crate::constants::{GAME_SPEED, WINDOW_WIDTH};
 use crate::resources::{AnimationState, ObstacleSpawningTimer};
 use crate::states::GameState;
 use crate::states::GameState::{GameOver, InGame};
-use crate::systems::camera::{initialize_camera_system, move_camera_system, counter_camera};
+use crate::systems::background::{initialize_background, scroll_background};
+use crate::systems::camera::{counter_camera, initialize_camera_system, move_camera_system};
 use crate::systems::game::end::{game_over, restart_game};
 use crate::systems::game::pause::{hide_pause_text, show_pause_text, toggle_pause};
 use crate::systems::game::setup::setup;
 #[allow(unused_imports)]
 use crate::systems::obstacles::collision::{debug_outlines, detect_collision};
 use crate::systems::obstacles::movement::{
-    move_ground, move_ground_obstacles, drop_obstacles, spawn_obstacles, move_sky_obstacles,
+    drop_obstacles, move_ground_obstacles, move_sky_obstacles, spawn_obstacles,
 };
 use crate::systems::player::health::{check_health, render_health_info};
 use crate::systems::player::movement::{
-    animate_sprite, apply_gravity, crouch, jump, drop_player,
+    animate_sprite, apply_gravity, crouch, drop_player, jump,
 };
 
 use bevy::asset::AssetMetaCheck;
@@ -49,7 +52,6 @@ const SPAWN_INTERVAL: f32 = 0.5;
 #[cfg(not(debug_assertions))] // Release mode
 const SPAWN_INTERVAL: f32 = 1.5;
 
-use crate::constants::GAME_SPEED;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
@@ -64,7 +66,7 @@ pub fn run() {
 fn main() {
     let primary_window = Window {
         title: "Dino Runner".to_string(),
-        resolution: (1280.0, 720.0).into(),
+        resolution: (WINDOW_WIDTH, 720.0).into(),
         resizable: false,
         ..default()
     };
@@ -94,7 +96,7 @@ fn main() {
             speed: GAME_SPEED * 2.0,
         })
         .insert_state(InGame)
-        .add_systems(Startup, (setup, initialize_camera_system))
+        .add_systems(Startup, (setup, initialize_camera_system, initialize_background))
         .add_systems(Update, toggle_pause)
         .add_systems(OnEnter(GameState::Paused), show_pause_text)
         .add_systems(OnExit(GameState::Paused), hide_pause_text)
@@ -115,7 +117,7 @@ fn main() {
                 apply_gravity,
                 drop_player,
                 crouch,
-                move_ground,
+                scroll_background,
             )
                 .run_if(in_state(InGame)),
         )

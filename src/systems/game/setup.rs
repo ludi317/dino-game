@@ -1,11 +1,8 @@
 use crate::components::{
-    AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, Player, PlayerCollider, Sand,
-    Velocity,
+    AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, Layer, Player, PlayerCollider,
+     Velocity,
 };
-use crate::constants::{
-    DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, GROUND_LEVEL, HIT_BOX_SCALE_X,
-    INITIAL_HEALTH, PTERO_TIMER_INTERVAL,
-};
+use crate::constants::{DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, GAME_SPEED, GROUND_LEVEL, HIT_BOX_SCALE_X, INITIAL_HEALTH, PTERO_TIMER_INTERVAL};
 use crate::resources::{
     CactusTexture, DinoDash, DinoRun, HealthPickUpImg, PterodactylDie, PterodactylFly,
 };
@@ -82,21 +79,7 @@ pub fn setup(
             ));
         });
 
-    // Ground
-    commands.spawn((
-        Sand,
-        Sprite {
-            image: asset_server.load("sand3.png"),
-            image_mode: SpriteImageMode::Tiled {
-                tile_x: true,
-                tile_y: false,
-                stretch_value: 1.0,
-            },
-            anchor: Anchor::BottomCenter,
-            ..default()
-        },
-        Transform::from_xyz(0.0, GROUND_LEVEL - 150.0, -1.0),
-    ));
+
 
     commands.spawn((HealthInfo, Text::new(format!("Health: {}", INITIAL_HEALTH))));
 }

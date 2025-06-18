@@ -1,6 +1,6 @@
-use crate::components::{AnimationIndices, AnimationTimer, CactusArm, CactusRoot, Collider, HealthPickup, IsHit, Pterodactyl, PterodactylCollider, Sand, Velocity};
-use crate::constants::{GAME_SPEED, GROUND_LEVEL, PTERO_SIZE, PTERO_SIZE_X, PTERO_SIZE_Y, SAND_SIZE_X, SAND_SIZE_Y, WINDOW_WIDTH};
-use crate::resources::{AnimationState, CactusTexture, HealthPickUpImg, ObstacleSpawningTimer, PterodactylFly};
+use crate::components::{AnimationIndices, AnimationTimer, CactusArm, CactusRoot, Collider, HealthPickup, IsHit, Pterodactyl, PterodactylCollider, Velocity};
+use crate::constants::{GAME_SPEED, GROUND_LEVEL, PTERO_SIZE, PTERO_SIZE_X, PTERO_SIZE_Y};
+use crate::resources::{CactusTexture, HealthPickUpImg, ObstacleSpawningTimer, PterodactylFly};
 use crate::systems::obstacles::cactus::spawn_cactus;
 use bevy::prelude::*;
 use bevy_prng::WyRand;
@@ -20,20 +20,6 @@ const HEALTH_PICKUP_SIZE: Vec2 = Vec2::new(HEALTH_SIZE_X as f32 * HEALTH_SCALE, 
 
 const SKY_OBSTACLE_CHANCE: f32 = 0.5;
 
-
-pub fn move_ground(
-    // https://bevy.org/examples/2d-rendering/sprite-tile/
-    mut sprites: Query<&mut Sprite, With<Sand>>,
-    mut state: ResMut<AnimationState>,
-    time: Res<Time>,
-) {
-    state.current += state.speed * time.delta_secs();
-    if state.current >= 2.0 * (SAND_SIZE_X + WINDOW_WIDTH) {
-        state.current = (state.current % SAND_SIZE_X) + SAND_SIZE_X;
-    }
-    let mut sprite = sprites.single_mut();
-    sprite.custom_size = Some(Vec2::new(state.current, SAND_SIZE_Y));
-}
 
 pub fn drop_obstacles(time: Res<Time>,
                       mut transforms: Query<(&IsHit, &mut Transform, &mut Velocity, &GlobalTransform), Or<(With<Pterodactyl>, With<CactusArm>)>>,

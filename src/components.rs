@@ -40,9 +40,6 @@ pub struct Collider {
 }
 
 #[derive(Component)]
-pub struct Sand;
-
-#[derive(Component)]
 pub struct CactusArm;
 
 #[derive(Component)]
@@ -59,3 +56,9 @@ pub struct PterodactylCollider;
 
 #[derive(Component)]
 pub struct PlayerCollider;
+
+#[derive(Component)]
+pub struct Layer {
+    pub current_size_x: f32,
+    pub speed_scale: f32,
+}
