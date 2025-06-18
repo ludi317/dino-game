@@ -72,22 +72,16 @@ pub fn is_colliding(pos1: Vec3, half_size1: Vec2, pos2: Vec3, half_size2: Vec2) 
 }
 
 #[allow(dead_code)]
-pub fn draw_ground_level(mut gizmos: Gizmos) {
-    // Draw a horizontal line at GROUND_LEVEL
+pub fn debug_outlines(
+    collider_query: Query<(&GlobalTransform, &Collider)>,
+    mut gizmos: Gizmos)
+{
     const LENGTH: f32 = 999999.0;
     gizmos.line(
         Vec3::new(-1. * LENGTH / 2.0, GROUND_LEVEL, 10.0), // Start point
         Vec3::new(LENGTH / 2.0, GROUND_LEVEL, 10.0), // End point
         BLUE,
     );
-}
-
-#[allow(dead_code)]
-pub fn debug_collider_outlines(
-    collider_query: Query<(&GlobalTransform, &Collider)>,
-    mut gizmos: Gizmos)
-{
-
 
     for (transform, collider) in collider_query.iter() {
         // Calculate half sizes
