@@ -22,11 +22,10 @@ mod systems {
 
 use crate::constants::WINDOW_WIDTH;
 use crate::resources::ObstacleSpawningTimer;
-use crate::states::GameState;
 use crate::states::GameState::{GameOver, InGame};
 use crate::systems::background::{initialize_background, scroll_background};
 use crate::systems::game::end::{game_over, restart_game};
-use crate::systems::game::pause::{hide_pause_text, show_pause_text, toggle_pause};
+use crate::systems::game::pause::toggle_pause;
 use crate::systems::game::setup::setup;
 #[allow(unused_imports)]
 use crate::systems::obstacles::collision::{debug_outlines, detect_collision};
@@ -39,6 +38,7 @@ use crate::systems::player::movement::{
 };
 
 use bevy::asset::AssetMetaCheck;
+use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
@@ -88,9 +88,6 @@ fn main() {
         )))
         .insert_state(InGame)
         .add_systems(Startup, (setup, initialize_background))
-        .add_systems(Update, toggle_pause)
-        .add_systems(OnEnter(GameState::Paused), show_pause_text)
-        .add_systems(OnExit(GameState::Paused), hide_pause_text)
         .add_systems(
             Update,
             (
@@ -107,6 +104,7 @@ fn main() {
                 drop_player,
                 crouch,
                 scroll_background,
+                toggle_pause.run_if(input_just_pressed(KeyCode::KeyP)),
             )
                 .run_if(in_state(InGame)),
         )

@@ -1,23 +1,14 @@
-use bevy::color::Color;
-use bevy::input::keyboard::KeyboardInput;
-use bevy::prelude::*;
 use crate::components::PauseText;
-use crate::states::GameState;
-use crate::states::GameState::InGame;
+use bevy::color::Color;
+use bevy::prelude::*;
 
-pub fn toggle_pause(
-    mut events: EventReader<KeyboardInput>,
-    game_state: Res<State<GameState>>,
-    mut next_state: ResMut<NextState<GameState>>,
-) {
-    for e in events.read() {
-        if e.state.is_pressed() && e.key_code == KeyCode::KeyP {
-            match game_state.get() {
-                InGame => next_state.set(GameState::Paused),
-                GameState::Paused => next_state.set(InGame),
-                _ => {} // Don't toggle pause from other states
-            }
-        }
+pub fn toggle_pause(mut time: ResMut<Time<Virtual>>, commands: Commands, query: Query<Entity, With<PauseText>>) {
+    if time.is_paused() {
+        time.unpause();
+        hide_pause_text(commands, query);
+    } else {
+        time.pause();
+        show_pause_text(commands);
     }
 }
 
