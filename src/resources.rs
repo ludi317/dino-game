@@ -5,6 +5,9 @@ use bevy::prelude::{Resource, Timer};
 #[derive(Resource)]
 pub struct ObstacleSpawningTimer(pub Timer);
 
+#[derive(Resource)]
+pub struct RealTimer(pub Timer);
+
 #[derive(Resource, Clone)]
 pub struct HealthPickUpImg(pub Handle<Image>);
 

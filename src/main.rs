@@ -21,7 +21,7 @@ mod systems {
 }
 
 use crate::constants::WINDOW_WIDTH;
-use crate::resources::ObstacleSpawningTimer;
+use crate::resources::{ObstacleSpawningTimer, RealTimer};
 use crate::states::GameState::{GameOver, InGame};
 use crate::systems::background::{initialize_background, scroll_background};
 use crate::systems::game::end::{game_over, restart_game};
@@ -33,9 +33,7 @@ use crate::systems::obstacles::movement::{
     drop_obstacles, move_ground_obstacles, move_sky_obstacles, spawn_obstacles,
 };
 use crate::systems::player::health::{check_health, render_health_info};
-use crate::systems::player::movement::{
-    animate_sprite, apply_gravity, crouch, drop_player, jump,
-};
+use crate::systems::player::movement::{animate_sprite, apply_gravity, change_time_speed, crouch, drop_player, jump};
 
 use bevy::asset::AssetMetaCheck;
 use bevy::input::common_conditions::input_just_pressed;
@@ -44,7 +42,7 @@ use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
 
 #[cfg(debug_assertions)] // Development mode
-const SPAWN_INTERVAL: f32 = 0.5;
+const SPAWN_INTERVAL: f32 = 1.5;
 
 #[cfg(not(debug_assertions))] // Release mode
 const SPAWN_INTERVAL: f32 = 1.5;
@@ -86,6 +84,7 @@ fn main() {
             SPAWN_INTERVAL,
             TimerMode::Repeating,
         )))
+        .insert_resource(RealTimer(Timer::from_seconds(SPAWN_INTERVAL, TimerMode::Repeating)))
         .insert_state(InGame)
         .add_systems(Startup, (setup, initialize_background))
         .add_systems(
@@ -105,6 +104,7 @@ fn main() {
                 crouch,
                 scroll_background,
                 toggle_pause.run_if(input_just_pressed(KeyCode::KeyP)),
+                change_time_speed,
             )
                 .run_if(in_state(InGame)),
         )
