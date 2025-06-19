@@ -4,6 +4,7 @@
 
 ## Controls
 - Spacebar or up arrow to jump. On mobile, touch screen. 
+- Down arrow to crouch.
 - P to pause
 
 ## Design
@@ -44,37 +45,3 @@ This is how we came to create our own version of the Chrome Dino game, written i
    ```
    ipconfig getifaddr en0
    ```
-
-## Daemonization Notes
-```text
-Dino game is daemonized on my raspberry pi and accessible at max.net.
-
-Enable and start service:
-sudo systemctl daemon-reload
-sudo systemctl enable dino-game
-sudo systemctl start dino-game
-
-Check status:
-sudo systemctl status dino-game
-
-Check logs for errors:
-journalctl -u dino-game -f
-
-Daemon configuration file:
-$ cat /etc/systemd/system/dino-game.service
-[Unit]
-Description=Dino Game HTTP Server
-After=network.target
-
-[Service]
-User=pi
-ExecStart=/usr/bin/authbind python3 -m http.server 80
-WorkingDirectory=/home/pi/dino-game/static
-StandardOutput=file:/home/pi/dino-game/static/dino-logs.txt
-StandardError=file:/home/pi/dino-game/static/dino-logs.txt
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
