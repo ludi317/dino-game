@@ -5,8 +5,11 @@ use crate::states::GameState::InGame;
 use bevy::color::Color;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
+use crate::resources::ScoreOffset;
 
-pub fn game_over(mut commands: Commands) {
+pub fn game_over(mut commands: Commands, mut score_offset: ResMut<ScoreOffset>,
+                 mut time: ResMut<Time<Virtual>>) {
+
     commands
         .spawn((Node {
             position_type: PositionType::Absolute,
@@ -19,13 +22,15 @@ pub fn game_over(mut commands: Commands) {
         },))
         .with_children(|builder| {
             builder.spawn((
-                Text("GAME OVER".to_string()),
+                Text(format!("Game Over\n Score: {}", (time.elapsed_secs() - score_offset.0).floor())),
                 TextFont::from_font_size(160.0),
                 TextLayout::new_with_justify(JustifyText::Center).with_no_wrap(),
-                TextColor(Color::srgb(1.0, 0.0, 0.0)),
+                TextColor(Color::srgb(0.0, 0.0, 1.0)),
                 GameOverText,
             ));
         });
+    score_offset.0 = time.elapsed_secs();
+    time.pause();
 }
 
 
@@ -51,6 +56,7 @@ pub fn restart_game(
 
             // reset time
             time.set_relative_speed(1.0);
+            time.unpause();
 
             // Despawn all obstacles
             for obstacle_entity in obstacle_query.iter() {

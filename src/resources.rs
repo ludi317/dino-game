@@ -8,6 +8,9 @@ pub struct ObstacleSpawningTimer(pub Timer);
 #[derive(Resource)]
 pub struct RealTimer(pub Timer);
 
+#[derive(Resource)]
+pub struct ScoreOffset(pub f32);
+
 #[derive(Resource, Clone)]
 pub struct HealthPickUpImg(pub Handle<Image>);
 

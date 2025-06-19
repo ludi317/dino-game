@@ -1,7 +1,8 @@
-use crate::components::{Health, HealthInfo, PlayerCollider};
+use crate::components::{Health, HealthInfo, PlayerCollider, ScoreInfo};
 use crate::states::GameState;
 use crate::states::GameState::GameOver;
 use bevy::prelude::*;
+use crate::resources::ScoreOffset;
 
 pub fn check_health(
     player_query: Query<&Health, With<PlayerCollider>>,
@@ -23,4 +24,9 @@ pub fn render_health_info(
             health_info.0 = format!("Health: {}", health.0);
         }
     }
+}
+
+pub fn render_score_info(time: Res<Time<Virtual>>,
+                         mut score_info_query: Query<&mut Text, With<ScoreInfo>>, offset: Res<ScoreOffset>) {
+    score_info_query.single_mut().unwrap().0 = format!("\nScore: {}", (time.elapsed_secs() - offset.0).floor());
 }

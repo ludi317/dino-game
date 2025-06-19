@@ -1,7 +1,4 @@
-use crate::components::{
-    AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, Player, PlayerCollider,
-    Velocity,
-};
+use crate::components::{AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, Player, PlayerCollider, ScoreInfo, Velocity};
 use crate::constants::{DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, GROUND_LEVEL, HIT_BOX_SCALE_X, INITIAL_HEALTH, PTERO_TIMER_INTERVAL};
 use crate::resources::{
     CactusTexture, DinoDash, DinoRun, HealthPickUpImg, PterodactylDie, PterodactylFly,
@@ -85,4 +82,5 @@ pub fn setup(
 
 
     commands.spawn((HealthInfo, Text::new(format!("Health: {}", INITIAL_HEALTH))));
+    commands.spawn((ScoreInfo, Text::new(format!("\nScore: {}", 0))));
 }

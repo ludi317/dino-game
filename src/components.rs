@@ -26,6 +26,9 @@ pub struct Health(pub usize);
 pub struct HealthInfo;
 
 #[derive(Component)]
+pub struct ScoreInfo;
+
+#[derive(Component)]
 pub struct AnimationIndices {
     pub first: usize,
     pub last: usize,
