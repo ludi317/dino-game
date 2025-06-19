@@ -23,7 +23,7 @@ pub const DINO_DASH_SIZE: Vec2 = Vec2::new(DINO_DASH_IMG_SIZE_X as f32 * DINO_RU
 pub const HIT_BOX_SCALE_Y: f32 = 0.75;
 
 #[cfg(debug_assertions)] // Development mode
-pub const INITIAL_HEALTH: usize = 999;
+pub const INITIAL_HEALTH: usize = 100;
 
 #[cfg(not(debug_assertions))] // Release mode
-pub const INITIAL_HEALTH: usize = 99;
+pub const INITIAL_HEALTH: usize = 1;

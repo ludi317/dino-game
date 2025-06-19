@@ -1,4 +1,4 @@
-use crate::components::{CactusRoot, GameOverText, Health, PlayerCollider};
+use crate::components::{CactusRoot, GameOverText, Health, HealthPickup, PlayerCollider, Pterodactyl};
 use crate::constants::INITIAL_HEALTH;
 use crate::states::GameState;
 use crate::states::GameState::InGame;
@@ -34,8 +34,9 @@ pub fn restart_game(
     mut commands: Commands,
     mut events: EventReader<KeyboardInput>,
     mut game_state: ResMut<NextState<GameState>>,
+    mut time: ResMut<Time<Virtual>>,
     player_query: Query<Entity, With<PlayerCollider>>,
-    obstacle_query: Query<Entity, With<CactusRoot>>,
+    obstacle_query: Query<Entity, Or<(With<CactusRoot>, With<Pterodactyl>, With<HealthPickup>)>>,
     game_over_text_query: Query<Entity, With<GameOverText>>,
 ) {
     for e in events.read() {
@@ -47,6 +48,9 @@ pub fn restart_game(
             if let Ok(player_entity) = player_query.single() {
                 commands.entity(player_entity).insert(Health(INITIAL_HEALTH));
             }
+
+            // reset time
+            time.set_relative_speed(1.0);
 
             // Despawn all obstacles
             for obstacle_entity in obstacle_query.iter() {

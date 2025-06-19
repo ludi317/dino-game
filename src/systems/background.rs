@@ -93,20 +93,10 @@ pub fn initialize_background(mut commands: Commands, asset_server: Res<AssetServ
         Transform::from_xyz(0.0, 0.0, -5.0),
     ));
 
-    // todo: remove this as a layer
     commands.spawn((
         Sprite {
             image: asset_server.load("6 Sun.png"),
-            image_mode: SpriteImageMode::Tiled {
-                tile_x: true,
-                tile_y: false,
-                stretch_value: 1.0,
-            },
             ..default()
-        },
-        Layer {
-            current_size_x: IMG_SIZE_X,
-            speed_scale: 0.0,
         },
         Transform::from_xyz(0.0, 0.0, -6.0),
     ));
@@ -148,16 +138,7 @@ pub fn initialize_background(mut commands: Commands, asset_server: Res<AssetServ
     commands.spawn((
         Sprite {
             image: asset_server.load("9 Background.png"),
-            image_mode: SpriteImageMode::Tiled {
-                tile_x: true,
-                tile_y: false,
-                stretch_value: 1.0,
-            },
             ..default()
-        },
-        Layer {
-            current_size_x: IMG_SIZE_X,
-            speed_scale: 0.1,
         },
         Transform::from_xyz(0.0, 0.0, -9.0),
     ));

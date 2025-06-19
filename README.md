@@ -3,7 +3,7 @@
 - Consume donuts
 
 ## Controls
-- Spacebar or up arrow to jump. On mobile, touch screen. 
+- Space bar or up arrow to jump. On mobile, touch screen.
 - Down arrow to crouch.
 - P to pause
 

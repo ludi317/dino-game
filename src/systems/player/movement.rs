@@ -9,11 +9,8 @@ use crate::constants::{
 use crate::resources::{DinoDash, DinoRun, RealTimer};
 use bevy::input::keyboard::KeyboardInput;
 use bevy::input::ButtonState;
-use bevy::log::tracing_subscriber::fmt::time;
-use bevy::math::{UVec2, Vec2, VectorSpace};
-use bevy::math::ops::log2;
+use bevy::math::{UVec2, Vec2};
 use bevy::prelude::*;
-use crate::SPAWN_INTERVAL;
 
 const JUMP_FORCE: f32 = 2000.0;
 const GRAVITY: f32 = -4000.0;
