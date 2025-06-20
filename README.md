@@ -3,9 +3,9 @@
 - Consume donuts
 
 ## Controls
-- Space bar or up arrow to jump. On mobile, touch screen.
-- Down arrow to crouch.
-- P to pause
+- Space bar ⎵ or up arrow ⬆️ to jump. On mobile, touch screen.
+- Down arrow ⬇️ to crouch.
+- 🅿 to pause
 
 ## Design
 - Parallax scrolling. Background layers scroll more slowly than foreground layers.

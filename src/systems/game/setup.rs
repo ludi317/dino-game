@@ -1,8 +1,6 @@
 use crate::components::{AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, Player, PlayerCollider, ScoreInfo, Velocity};
-use crate::constants::{DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, GROUND_LEVEL, HIT_BOX_SCALE_X, INITIAL_HEALTH, PTERO_TIMER_INTERVAL};
-use crate::resources::{
-    CactusTexture, DinoDash, DinoRun, HealthPickUpImg, PterodactylDie, PterodactylFly,
-};
+use crate::constants::{DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, GROUND_LEVEL, HIT_BOX_SCALE_X, INITIAL_HEALTH, RUN_ANIMATION_TIMER_INTERVAL};
+use crate::resources::{CactusTexture, DinoDash, DinoJump, DinoRun, HealthPickUpImg, PterodactylDie, PterodactylFly};
 use bevy::asset::AssetServer;
 use bevy::image::{TextureAtlas, TextureAtlasLayout};
 use bevy::prelude::*;
@@ -30,6 +28,7 @@ pub fn setup(
         asset_server.load("blue_pterodactyl_die.png"),
     ));
     commands.insert_resource(DinoDash(asset_server.load("purple_trex_dash.png")));
+    commands.insert_resource(DinoJump(asset_server.load("purple_trex_jump.png")));
 
     let texture = dino_run;
     let layout = TextureAtlasLayout::from_grid(
@@ -60,7 +59,7 @@ pub fn setup(
             Velocity(Vec3::ZERO),
             AnimationIndices { first: 0, last: 15 },
             AnimationTimer(Timer::from_seconds(
-                PTERO_TIMER_INTERVAL,
+                RUN_ANIMATION_TIMER_INTERVAL,
                 TimerMode::Repeating,
             )),
         ))
