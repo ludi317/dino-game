@@ -63,22 +63,22 @@ pub fn restart_game(
             sprite.texture_atlas = Some(TextureAtlas { layout: texture_atlas_layout, index: 0});
             anim_indices.last = 15;
             anim_timer.0.set_duration(Duration::from_secs_f32(RUN_ANIMATION_TIMER_INTERVAL));
+
+            // Despawn all obstacles
+            for obstacle_entity in obstacle_query.iter() {
+                commands.entity(obstacle_entity).try_despawn();
+            }
+
+            // Despawn the "GAME OVER" text
+            for text_entity in game_over_text_query.iter() {
+                commands.entity(text_entity).try_despawn();
+            }
+
+            // Reset game state
+            game_state.set(InGame);
+
+            // reset time
+            time.unpause();
         }
-
-        // Despawn all obstacles
-        for obstacle_entity in obstacle_query.iter() {
-            commands.entity(obstacle_entity).try_despawn();
-        }
-
-        // Despawn the "GAME OVER" text
-        for text_entity in game_over_text_query.iter() {
-            commands.entity(text_entity).try_despawn();
-        }
-
-        // Reset game state
-        game_state.set(InGame);
-
-        // reset time
-        time.unpause();
     }
 }
