@@ -124,6 +124,7 @@ pub fn spawn_obstacles(
                 });
             } else {
                 // food
+                let obstacle_y = obstacle_y - 40.;
                 commands.spawn((
                     HealthPickup,
                     Sprite {

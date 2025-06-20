@@ -23,7 +23,7 @@ pub fn game_over(mut commands: Commands, mut score_offset: ResMut<ScoreOffset>,
         },))
         .with_children(|builder| {
             builder.spawn((
-                Text(format!("Game Over. Score: {}", (time.elapsed_secs() - score_offset.0).floor())),
+                Text(format!("Game Over. Score: {}\n Press Space bar to Play Again", (time.elapsed_secs() - score_offset.0).floor())),
                 TextFont::from_font_size(48.0),
                 TextLayout::new_with_justify(JustifyText::Center).with_no_wrap(),
                 TextColor(Color::srgb(0.0, 0.5, 0.5)),
