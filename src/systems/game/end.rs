@@ -1,12 +1,12 @@
 use crate::components::{AnimationIndices, AnimationTimer, CactusRoot, GameOverText, Health, HealthPickup, Player, PlayerCollider, Pterodactyl};
-use crate::constants::{DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, INITIAL_HEALTH, RUN_ANIMATION_TIMER_INTERVAL};
+use crate::constants::INITIAL_HEALTH;
 use crate::resources::{DinoRun, ScoreOffset};
 use crate::states::GameState;
 use crate::states::GameState::InGame;
+use crate::systems::player::animation::animate_run;
 use bevy::color::Color;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
-use std::time::Duration;
 
 pub fn game_over(mut commands: Commands, mut score_offset: ResMut<ScoreOffset>,
                  mut time: ResMut<Time<Virtual>>) {
@@ -46,7 +46,7 @@ pub fn restart_game(
     obstacle_query: Query<Entity, Or<(With<CactusRoot>, With<Pterodactyl>, With<HealthPickup>)>>,
     game_over_text_query: Query<Entity, With<GameOverText>>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    dino_run: Res<DinoRun>,
+    mut dino_run: Res<DinoRun>,
 ) {
     for e in events.read() {
         if e.state.is_pressed() && e.key_code == KeyCode::Space {
@@ -56,14 +56,7 @@ pub fn restart_game(
 
             // dino run animation
             let (mut sprite, mut anim_indices, mut anim_timer) = player_query.single_mut().unwrap();
-            let layout = TextureAtlasLayout::from_grid(UVec2::new(DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y), 4, 4, None, None);
-            let texture_atlas_layout = texture_atlas_layouts.add(layout);
-            sprite.image = dino_run.0.clone();
-            sprite.custom_size = Some(DINO_RUN_SIZE);
-            sprite.texture_atlas = Some(TextureAtlas { layout: texture_atlas_layout, index: 0});
-            anim_indices.last = 15;
-            anim_timer.0.set_duration(Duration::from_secs_f32(RUN_ANIMATION_TIMER_INTERVAL));
-
+            animate_run(&mut dino_run, &mut sprite, &mut anim_indices, &mut anim_timer, &mut texture_atlas_layouts, 0);
             // Despawn all obstacles
             for obstacle_entity in obstacle_query.iter() {
                 commands.entity(obstacle_entity).try_despawn();

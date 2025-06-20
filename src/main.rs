@@ -10,6 +10,7 @@ mod systems {
         pub mod setup;
     }
     pub mod player {
+        pub mod animation;
         pub mod health;
         pub mod movement;
     }
@@ -33,7 +34,7 @@ use crate::systems::obstacles::movement::{
     drop_obstacles, move_ground_obstacles, move_sky_obstacles, spawn_obstacles,
 };
 use crate::systems::player::health::{check_health, render_health_info, render_score_info};
-use crate::systems::player::movement::{animate_sprite, apply_gravity, change_time_speed, crouch, drop_player, jump};
+use crate::systems::player::movement::{animate_sprite, apply_gravity, change_time_speed, duck, drop_player, jump};
 
 use bevy::asset::AssetMetaCheck;
 use bevy::input::common_conditions::input_just_pressed;
@@ -103,7 +104,7 @@ fn main() {
                 jump,
                 apply_gravity,
                 drop_player,
-                crouch,
+                duck,
                 scroll_background,
                 toggle_pause.run_if(input_just_pressed(KeyCode::KeyP)),
                 change_time_speed,
