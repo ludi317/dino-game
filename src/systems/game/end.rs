@@ -22,10 +22,10 @@ pub fn game_over(mut commands: Commands, mut score_offset: ResMut<ScoreOffset>,
         },))
         .with_children(|builder| {
             builder.spawn((
-                Text(format!("Game Over\n Score: {}", (time.elapsed_secs() - score_offset.0).floor())),
-                TextFont::from_font_size(160.0),
+                Text(format!("Game Over. Score: {}", (time.elapsed_secs() - score_offset.0).floor())),
+                TextFont::from_font_size(48.0),
                 TextLayout::new_with_justify(JustifyText::Center).with_no_wrap(),
-                TextColor(Color::srgb(0.0, 0.0, 1.0)),
+                TextColor(Color::srgb(0.0, 0.5, 0.5)),
                 GameOverText,
             ));
         });
