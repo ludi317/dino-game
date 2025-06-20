@@ -1,18 +1,15 @@
 use crate::components::{
     AnimationIndices, AnimationTimer, Collider, Player, PlayerCollider, Velocity,
 };
-use crate::constants::{
-    DINO_DASH_IMG_SIZE_X, DINO_DASH_IMG_SIZE_Y, DINO_DASH_SIZE, DINO_JUMP_IMG_SIZE_X,
-    DINO_JUMP_IMG_SIZE_Y, DINO_JUMP_SIZE, DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE,
-    GROUND_LEVEL, HIT_BOX_SCALE_X, HIT_BOX_SCALE_Y, JUMP_ANIMATION_TIMER_INTERVAL,
-    RUN_ANIMATION_TIMER_INTERVAL,
-};
+use crate::constants::{DINO_DASH_IMG_SIZE_X, DINO_DASH_IMG_SIZE_Y, DINO_DASH_SIZE, DINO_DIE_SIZE, DINO_JUMP_IMG_SIZE_X, DINO_JUMP_IMG_SIZE_Y, DINO_JUMP_SIZE, DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, GROUND_LEVEL, HIT_BOX_SCALE_X, HIT_BOX_SCALE_Y, JUMP_ANIMATION_TIMER_INTERVAL, RUN_ANIMATION_TIMER_INTERVAL};
 use crate::resources::{DinoDash, DinoJump, DinoRun, RealTimer};
 use bevy::input::ButtonState;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::math::{UVec2, Vec2};
 use bevy::prelude::*;
 use std::time::Duration;
+use crate::states::GameState;
+use crate::states::GameState::GameOver;
 
 const JUMP_FORCE: f32 = 1900.0;
 const GRAVITY: f32 = -4000.0;
@@ -39,6 +36,7 @@ pub fn drop_player(
     mut player_collider: Query<&mut Collider, With<PlayerCollider>>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     dino_run: Res<DinoRun>,
+    mut game_state: ResMut<NextState<GameState>>,
 ) {
     for (mut transform, mut velocity, mut sprite, mut anim_indices, mut anim_timer) in
         query.iter_mut()
@@ -68,11 +66,15 @@ pub fn drop_player(
                 collider.size = Vec2::new(DINO_RUN_SIZE.x * HIT_BOX_SCALE_X, DINO_RUN_SIZE.y);
                 anim_indices.first = 0;
                 anim_indices.last = 15;
-                anim_timer
-                    .0
-                    .set_duration(Duration::from_secs_f32(RUN_ANIMATION_TIMER_INTERVAL));
-                anim_timer.0.set_mode(TimerMode::Repeating);
+                anim_timer.0.set_duration(Duration::from_secs_f32(RUN_ANIMATION_TIMER_INTERVAL));
                 // not touching the transforms
+            } else if sprite.custom_size == Some(DINO_DIE_SIZE) {
+                if let Some(atlas) = &sprite.texture_atlas {
+                    if atlas.index >= 4 {
+                        // dino dead on the ground, set game state to game over
+                        game_state.set(GameOver);
+                    }
+                }
             }
         }
     }
@@ -150,7 +152,7 @@ pub fn jump(
                 });
                 collider.size = Vec2::new(
                     DINO_JUMP_SIZE.x * HIT_BOX_SCALE_X,
-                    DINO_JUMP_SIZE.y * HIT_BOX_SCALE_Y,
+                    DINO_JUMP_SIZE.y,
                 );
                 anim_indices.first = first;
                 anim_indices.last = 11;
@@ -186,7 +188,7 @@ pub fn jump(
                 });
                 collider.size = Vec2::new(
                     DINO_JUMP_SIZE.x * HIT_BOX_SCALE_X,
-                    DINO_JUMP_SIZE.y * HIT_BOX_SCALE_Y,
+                    DINO_JUMP_SIZE.y,
                 );
                 anim_indices.first = first;
                 anim_indices.last = 11;

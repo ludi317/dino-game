@@ -28,6 +28,12 @@ const DINO_JUMP_SCALE: f32 = 200. / DINO_JUMP_IMG_SIZE_X as f32;
 pub const DINO_JUMP_SIZE: Vec2 = Vec2::new(DINO_JUMP_IMG_SIZE_X as f32 * DINO_JUMP_SCALE, DINO_JUMP_IMG_SIZE_Y as f32 * DINO_JUMP_SCALE);
 pub const JUMP_ANIMATION_TIMER_INTERVAL: f32 = 0.11;
 
+pub const DINO_DIE_IMG_SIZE_X: u32 = 871;
+pub const DINO_DIE_IMG_SIZE_Y: u32 = 689;
+const DINO_DIE_SCALE: f32 = 200. / DINO_DIE_IMG_SIZE_X as f32;
+pub const DINO_DIE_SIZE: Vec2 = Vec2::new(DINO_DIE_IMG_SIZE_X as f32 * DINO_DIE_SCALE, DINO_DIE_IMG_SIZE_Y as f32 * DINO_DIE_SCALE);
+pub const DIE_ANIMATION_TIMER_INTERVAL: f32 = 0.13;
+
 #[cfg(debug_assertions)] // Development mode
 pub const INITIAL_HEALTH: usize = 1;
 

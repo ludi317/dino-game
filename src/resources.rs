@@ -31,3 +31,6 @@ pub struct DinoDash(pub Handle<Image>);
 
 #[derive(Resource, Clone)]
 pub struct DinoJump(pub Handle<Image>);
+
+#[derive(Resource, Clone)]
+pub struct DinoDie(pub Handle<Image>);
