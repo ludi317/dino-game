@@ -2,7 +2,6 @@ use crate::components::{CactusArm, CactusCollider, CactusRoot, Collider, IsHit, 
 use crate::resources::CactusTexture;
 use bevy::asset::Assets;
 use bevy::color::Color;
-// use bevy::hierarchy::{BuildChildren, ChildBuild};
 use bevy::math::{Quat, Vec2};
 use bevy::prelude::*;
 use bevy_prng::WyRand;

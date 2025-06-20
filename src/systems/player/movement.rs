@@ -19,7 +19,7 @@ const GRAVITY: f32 = -4000.0;
 const MAX_REL_TIME: f32 = 3.0;
 
 #[cfg(debug_assertions)] // Development mode
-const REL_TIME_INCR: f32 = 0.00;
+const REL_TIME_INCR: f32 = 0.02;
 
 #[cfg(not(debug_assertions))] // Release mode
 const REL_TIME_INCR: f32 = 0.02;
@@ -63,7 +63,7 @@ pub fn drop_player(
                 sprite.custom_size = Some(DINO_RUN_SIZE);
                 sprite.texture_atlas = Some(TextureAtlas {
                     layout: texture_atlas_layout,
-                    index: 0,
+                    index: 4,
                 });
                 collider.size = Vec2::new(DINO_RUN_SIZE.x * HIT_BOX_SCALE_X, DINO_RUN_SIZE.y);
                 anim_indices.first = 0;
@@ -119,6 +119,7 @@ pub fn jump(
     dino_jump: Res<DinoJump>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut player_collider: Query<&mut Collider, With<PlayerCollider>>,
+    time: Res<Time<Virtual>>,
 ) {
     for e in events.read() {
         if let Ok((mut velocity, transform, mut sprite, mut anim_indices, mut anim_timer)) =
@@ -127,6 +128,7 @@ pub fn jump(
             if e.state.is_pressed()
                 && (e.key_code == KeyCode::Space || e.key_code == KeyCode::ArrowUp)
                 && transform.translation.y <= GROUND_LEVEL
+                && !time.is_paused()
             {
                 let mut collider = player_collider.single_mut().unwrap();
                 velocity.0.y = JUMP_FORCE;
@@ -146,7 +148,10 @@ pub fn jump(
                     layout: texture_atlas_layout,
                     index: first,
                 });
-                collider.size = Vec2::new(DINO_JUMP_SIZE.x * HIT_BOX_SCALE_X, DINO_JUMP_SIZE.y * HIT_BOX_SCALE_Y);
+                collider.size = Vec2::new(
+                    DINO_JUMP_SIZE.x * HIT_BOX_SCALE_X,
+                    DINO_JUMP_SIZE.y * HIT_BOX_SCALE_Y,
+                );
                 anim_indices.first = first;
                 anim_indices.last = 11;
                 anim_timer
@@ -157,7 +162,9 @@ pub fn jump(
         }
     }
     for _touch in touches.iter_just_pressed() {
-        if let Ok((mut velocity, transform, mut sprite, mut anim_indices, mut anim_timer)) = query.single_mut() {
+        if let Ok((mut velocity, transform, mut sprite, mut anim_indices, mut anim_timer)) =
+            query.single_mut()
+        {
             if transform.translation.y <= GROUND_LEVEL {
                 let mut collider = player_collider.single_mut().unwrap();
                 velocity.0.y = JUMP_FORCE;
@@ -177,7 +184,10 @@ pub fn jump(
                     layout: texture_atlas_layout,
                     index: first,
                 });
-                collider.size = Vec2::new(DINO_JUMP_SIZE.x * HIT_BOX_SCALE_X, DINO_JUMP_SIZE.y * HIT_BOX_SCALE_Y);
+                collider.size = Vec2::new(
+                    DINO_JUMP_SIZE.x * HIT_BOX_SCALE_X,
+                    DINO_JUMP_SIZE.y * HIT_BOX_SCALE_Y,
+                );
                 anim_indices.first = first;
                 anim_indices.last = 11;
                 anim_timer
@@ -261,10 +271,12 @@ pub fn change_time_speed(
     time_fixed: ResMut<Time<Fixed>>,
     mut timer: ResMut<RealTimer>,
 ) {
-    timer.0.tick(time_fixed.delta());
+    if !time_virtual.is_paused() {
+        timer.0.tick(time_fixed.delta());
 
-    if timer.0.finished() {
-        let rel_speed = (time_virtual.relative_speed() + REL_TIME_INCR).min(MAX_REL_TIME);
-        time_virtual.set_relative_speed(rel_speed);
+        if timer.0.finished() {
+            let rel_speed = (time_virtual.relative_speed() + REL_TIME_INCR).min(MAX_REL_TIME);
+            time_virtual.set_relative_speed(rel_speed);
+        }
     }
 }
