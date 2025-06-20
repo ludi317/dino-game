@@ -27,7 +27,7 @@ pub struct CactusTexture(pub Handle<Image>);
 pub struct DinoRun(pub Handle<Image>);
 
 #[derive(Resource, Clone)]
-pub struct DinoDash(pub Handle<Image>);
+pub struct DinoDuck(pub Handle<Image>);
 
 #[derive(Resource, Clone)]
 pub struct DinoJump(pub Handle<Image>);

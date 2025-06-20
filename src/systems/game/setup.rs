@@ -1,6 +1,6 @@
 use crate::components::{AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, Player, PlayerCollider, ScoreInfo, Velocity};
 use crate::constants::{DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, GROUND_LEVEL, HIT_BOX_SCALE_X, INITIAL_HEALTH, RUN_ANIMATION_TIMER_INTERVAL};
-use crate::resources::{CactusTexture, DinoDash, DinoDie, DinoJump, DinoRun, HealthPickUpImg, PterodactylDie, PterodactylFly};
+use crate::resources::{CactusTexture, DinoDuck, DinoDie, DinoJump, DinoRun, HealthPickUpImg, PterodactylDie, PterodactylFly};
 use bevy::asset::AssetServer;
 use bevy::image::{TextureAtlas, TextureAtlasLayout};
 use bevy::prelude::*;
@@ -27,7 +27,7 @@ pub fn setup(
     commands.insert_resource(PterodactylDie(
         asset_server.load("blue_pterodactyl_die.png"),
     ));
-    commands.insert_resource(DinoDash(asset_server.load("purple_trex_dash.png")));
+    commands.insert_resource(DinoDuck(asset_server.load("purple_trex_duck.png")));
     commands.insert_resource(DinoJump(asset_server.load("purple_trex_jump.png")));
     commands.insert_resource(DinoDie(asset_server.load("purple_trex_die.png")));
 
