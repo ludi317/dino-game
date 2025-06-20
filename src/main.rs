@@ -76,6 +76,7 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest())
                 .set(AssetPlugin {
+                    file_path: "static/assets".to_string(),
                     meta_check: AssetMetaCheck::Never,
                     ..default()
                 }),
