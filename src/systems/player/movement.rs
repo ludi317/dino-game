@@ -14,12 +14,12 @@ use bevy::math::{UVec2, Vec2};
 use bevy::prelude::*;
 use std::time::Duration;
 
-const JUMP_FORCE: f32 = 2000.0;
+const JUMP_FORCE: f32 = 1900.0;
 const GRAVITY: f32 = -4000.0;
 const MAX_REL_TIME: f32 = 3.0;
 
 #[cfg(debug_assertions)] // Development mode
-const REL_TIME_INCR: f32 = 0.02;
+const REL_TIME_INCR: f32 = 0.00;
 
 #[cfg(not(debug_assertions))] // Release mode
 const REL_TIME_INCR: f32 = 0.02;
@@ -48,7 +48,7 @@ pub fn drop_player(
         if transform.translation.y <= GROUND_LEVEL {
             transform.translation.y = GROUND_LEVEL;
             velocity.0.y = 0.0;
-            // back to running if not already
+            // back to running if jumping
             if sprite.custom_size == Some(DINO_JUMP_SIZE) {
                 let mut collider = player_collider.single_mut().unwrap();
                 let layout = TextureAtlasLayout::from_grid(

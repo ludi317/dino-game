@@ -1,6 +1,6 @@
 use bevy::math::Vec2;
 
-pub const GROUND_LEVEL: f32 = -300.0;
+pub const GROUND_LEVEL: f32 = -330.0;
 pub const GAME_SPEED: f32 = 500.0;
 pub const WINDOW_WIDTH: f32 = 1280.0;
 
@@ -18,8 +18,8 @@ pub const HIT_BOX_SCALE_X: f32 = 0.67;
 
 pub const DINO_DASH_IMG_SIZE_X: u32 = 902;
 pub const DINO_DASH_IMG_SIZE_Y: u32 = 571;
-// const DINO_DASH_SCALE: f32 = 200. / DINO_DASH_IMG_SIZE_X as f32;
-pub const DINO_DASH_SIZE: Vec2 = Vec2::new(DINO_DASH_IMG_SIZE_X as f32 * DINO_RUN_SCALE, DINO_DASH_IMG_SIZE_Y as f32 * DINO_RUN_SCALE);
+const DINO_DASH_SCALE: f32 = 200. / DINO_DASH_IMG_SIZE_X as f32;
+pub const DINO_DASH_SIZE: Vec2 = Vec2::new(DINO_DASH_IMG_SIZE_X as f32 * DINO_DASH_SCALE, DINO_DASH_IMG_SIZE_Y as f32 * DINO_DASH_SCALE);
 pub const HIT_BOX_SCALE_Y: f32 = 0.75;
 
 pub const DINO_JUMP_IMG_SIZE_X: u32 = 862;
