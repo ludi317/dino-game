@@ -44,9 +44,14 @@ use bevy_rand::prelude::EntropyPlugin;
 
 #[cfg(debug_assertions)] // Development mode
 const SPAWN_INTERVAL: f32 = 1.5;
+#[cfg(debug_assertions)]
+const ASSET_FOLDER: &str = "static/assets";
 
 #[cfg(not(debug_assertions))] // Release mode
 const SPAWN_INTERVAL: f32 = 1.5;
+#[cfg(not(debug_assertions))]
+const ASSET_FOLDER: &str = "assets";
+
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -77,7 +82,7 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest())
                 .set(AssetPlugin {
-                    file_path: "static/assets".to_string(),
+                    file_path: ASSET_FOLDER.to_string(),
                     meta_check: AssetMetaCheck::Never,
                     ..default()
                 }),
