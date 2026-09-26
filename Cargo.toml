@@ -26,3 +26,10 @@ lto = true
 strip = true
 incremental = true
 opt-level = "s"
+
+# macOS 26 returns NSApplication.screens as a Swift-bridged array whose
+# countByEnumeratingWithState:objects:count: is encoded with an unsigned return
+# type. objc2 0.5's debug-only message verification rejects that and panics
+# inside winit's monitor code, so disable debug assertions for objc2 only.
+[profile.dev.package.objc2]
+debug-assertions = false
