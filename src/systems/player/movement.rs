@@ -2,7 +2,7 @@ use crate::components::{
     AnimationIndices, AnimationTimer, Collider, Player, PlayerCollider, Velocity,
 };
 use crate::constants::{DINO_DIE_SIZE, DINO_DUCK_SIZE, DINO_JUMP_SIZE, DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, GROUND_LEVEL, HIT_BOX_SCALE_X};
-use crate::resources::{DinoDuck, DinoJump, DinoRun, RealTimer};
+use crate::resources::{DinoDuck, DinoJump, DinoRun, GameSettings, RealTimer};
 use crate::states::GameState;
 use crate::states::GameState::GameOver;
 use crate::systems::player::animation::{animate_duck, animate_jump, animate_run};
@@ -180,7 +180,12 @@ pub fn change_time_speed(
     mut time_virtual: ResMut<Time<Virtual>>,
     time_fixed: ResMut<Time<Fixed>>,
     mut timer: ResMut<RealTimer>,
+    settings: Res<GameSettings>,
 ) {
+    if !settings.speed_up_over_time {
+        return;
+    }
+
     if !time_virtual.is_paused() {
         timer.0.tick(time_fixed.delta());
 
@@ -188,5 +193,40 @@ pub fn change_time_speed(
             let rel_speed = (time_virtual.relative_speed() + REL_TIME_INCR).min(MAX_REL_TIME);
             time_virtual.set_relative_speed(rel_speed);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    /// Runs `change_time_speed` once, with enough elapsed time for the timer to fire.
+    fn run_change_time_speed(speed_up_over_time: bool) -> f32 {
+        let mut app = App::new();
+        app.insert_resource(GameSettings {
+            speed_up_over_time,
+        })
+        .insert_resource(RealTimer(Timer::from_seconds(1.5, TimerMode::Repeating)))
+        .init_resource::<Time<Virtual>>()
+        .init_resource::<Time<Fixed>>()
+        .add_systems(Update, change_time_speed);
+
+        app.world_mut()
+            .resource_mut::<Time<Fixed>>()
+            .advance_by(Duration::from_secs(2));
+        app.update();
+
+        app.world().resource::<Time<Virtual>>().relative_speed()
+    }
+
+    #[test]
+    fn game_speeds_up_when_the_setting_is_on() {
+        assert_eq!(run_change_time_speed(true), 1.0 + REL_TIME_INCR);
+    }
+
+    #[test]
+    fn game_keeps_a_steady_pace_when_the_setting_is_off() {
+        assert_eq!(run_change_time_speed(false), 1.0);
     }
 }

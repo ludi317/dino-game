@@ -1,6 +1,7 @@
 pub mod background;
 pub mod game {
     pub mod end;
+    pub mod menu;
     pub mod pause;
     pub mod setup;
 }

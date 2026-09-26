@@ -5,11 +5,16 @@ mod states;
 mod systems;
 
 use crate::constants::WINDOW_WIDTH;
-use crate::resources::{ObstacleSpawningTimer, RealTimer, ScoreOffset};
-use crate::states::GameState::{GameOver, InGame};
+use crate::resources::{GameSettings, ObstacleSpawningTimer, RealTimer, RunInProgress, ScoreOffset};
+use crate::states::GameState;
+use crate::states::GameState::{GameOver, InGame, Menu, Settings};
 use crate::systems::background::{initialize_background, scroll_background};
 use crate::systems::game::end::{game_over, restart_game};
-use crate::systems::game::pause::toggle_pause;
+use crate::systems::game::menu::{
+    despawn_menu, despawn_settings, end_run, hide_hud, menu_input, open_menu, settings_input,
+    show_hud, spawn_menu, spawn_settings, start_run,
+};
+use crate::systems::game::pause::{hide_pause_text, toggle_pause};
 use crate::systems::game::setup::setup;
 #[allow(unused_imports)]
 use crate::systems::obstacles::collision::{debug_outlines, detect_collision};
@@ -76,7 +81,9 @@ fn main() {
         )))
         .insert_resource(RealTimer(Timer::from_seconds(SPAWN_INTERVAL, TimerMode::Repeating)))
         .insert_resource(ScoreOffset(0.0))
-        .insert_state(InGame)
+        .init_resource::<GameSettings>()
+        .init_resource::<RunInProgress>()
+        .init_state::<GameState>()
         .add_systems(Startup, (setup, initialize_background))
         .add_systems(
             Update,
@@ -95,13 +102,21 @@ fn main() {
                 duck,
                 scroll_background,
                 toggle_pause.run_if(input_just_pressed(KeyCode::KeyP)),
+                open_menu.run_if(input_just_pressed(KeyCode::KeyO)),
                 change_time_speed,
                 render_score_info,
             )
                 .run_if(in_state(InGame)),
         )
-        .add_systems(OnEnter(GameOver), game_over)
-        .add_systems(Update, restart_game.run_if(in_state(GameOver)));
+        .add_systems(OnEnter(GameOver), (game_over, end_run))
+        .add_systems(Update, restart_game.run_if(in_state(GameOver)))
+        .add_systems(OnEnter(Menu), (spawn_menu, hide_hud, hide_pause_text))
+        .add_systems(OnExit(Menu), despawn_menu)
+        .add_systems(Update, menu_input.run_if(in_state(Menu)))
+        .add_systems(OnEnter(Settings), spawn_settings)
+        .add_systems(OnExit(Settings), despawn_settings)
+        .add_systems(Update, settings_input.run_if(in_state(Settings)))
+        .add_systems(OnEnter(InGame), (start_run, show_hud));
 
     setup_debug_systems(&mut app);
     app.run();
@@ -110,7 +125,7 @@ fn main() {
 fn setup_debug_systems(app: &mut App) -> &mut App {
     #[cfg(debug_assertions)]
     {
-        app.add_systems(Update, debug_outlines);
+        app.add_systems(Update, debug_outlines.run_if(in_state(InGame)));
     }
     app
 }

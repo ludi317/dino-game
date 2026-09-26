@@ -80,6 +80,15 @@ pub fn setup(
 
 
 
-    commands.spawn((HealthInfo, Text::new(format!("Health: {}", INITIAL_HEALTH))));
-    commands.spawn((ScoreInfo, Text::new(format!("\nScore: {}", 0))));
+    // Hidden until a run starts: the landing page owns the screen first.
+    commands.spawn((
+        HealthInfo,
+        Text::new(format!("Health: {}", INITIAL_HEALTH)),
+        Visibility::Hidden,
+    ));
+    commands.spawn((
+        ScoreInfo,
+        Text::new(format!("\nScore: {}", 0)),
+        Visibility::Hidden,
+    ));
 }

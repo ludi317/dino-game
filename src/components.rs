@@ -20,6 +20,15 @@ pub struct GameOverText;
 pub struct PauseText;
 
 #[derive(Component)]
+pub struct MenuRoot;
+
+#[derive(Component)]
+pub struct SettingsRoot;
+
+#[derive(Component)]
+pub struct SpeedUpSetting;
+
+#[derive(Component)]
 pub struct Health(pub usize);
 
 #[derive(Component)]
