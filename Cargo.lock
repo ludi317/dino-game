@@ -1821,6 +1821,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "dino-game"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_image",
+ "bevy_prng",
+ "bevy_rand",
+ "console_error_panic_hook",
+ "getrandom 0.3.1",
+ "rand",
+ "rand_core 0.9.3",
+ "uuid",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "dispatch"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2704,23 +2721,6 @@ checksum = "b8402cab7aefae129c6977bb0ff1b8fd9a04eb5b51efc50a70bea51cda0c7924"
 dependencies = [
  "adler2",
  "simd-adler32",
-]
-
-[[package]]
-name = "my_bevy_game"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_image",
- "bevy_prng",
- "bevy_rand",
- "console_error_panic_hook",
- "getrandom 0.3.1",
- "rand",
- "rand_core 0.9.3",
- "uuid",
- "wasm-bindgen",
- "web-sys",
 ]
 
 [[package]]
