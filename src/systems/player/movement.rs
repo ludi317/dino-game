@@ -233,6 +233,7 @@ mod tests {
         let mut app = App::new();
         app.insert_resource(GameSettings {
             speed_up_over_time,
+            ..default()
         })
         .insert_resource(RealTimer(Timer::from_seconds(1.5, TimerMode::Repeating)))
         .init_resource::<Time<Virtual>>()

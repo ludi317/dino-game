@@ -1,4 +1,6 @@
-use crate::components::{HealthInfo, MenuRoot, ScoreInfo, SettingsRoot, SpeedUpSetting};
+use crate::components::{
+    DinoColorSetting, HealthInfo, MenuRoot, ScoreInfo, SettingsRoot, SpeedUpSetting,
+};
 use crate::resources::{GameSettings, ObstacleSpawningTimer, RealTimer, RunInProgress, ScoreOffset};
 use crate::states::GameState;
 use bevy::prelude::*;
@@ -96,6 +98,12 @@ pub fn spawn_settings(mut commands: Commands, settings: Res<GameSettings>) {
                 TextColor(speed_up_color(&settings)),
             ));
             menu.spawn((
+                DinoColorSetting,
+                Text::new(dino_color_label(&settings)),
+                TextFont::from_font_size(32.0),
+                TextColor(settings.dino_color.swatch()),
+            ));
+            menu.spawn((
                 Text::new("(Esc)  Back"),
                 TextFont::from_font_size(24.0),
                 TextColor(HINT_COLOR),
@@ -111,14 +119,27 @@ pub fn settings_input(
     keys: Res<ButtonInput<KeyCode>>,
     mut settings: ResMut<GameSettings>,
     mut next_state: ResMut<NextState<GameState>>,
-    mut label_query: Query<(&mut Text, &mut TextColor), With<SpeedUpSetting>>,
+    mut speed_up_query: Query<(&mut Text, &mut TextColor), With<SpeedUpSetting>>,
+    mut dino_color_query: Query<
+        (&mut Text, &mut TextColor),
+        (With<DinoColorSetting>, Without<SpeedUpSetting>),
+    >,
 ) {
     if keys.just_pressed(KeyCode::KeyT) {
         settings.speed_up_over_time = !settings.speed_up_over_time;
 
-        if let Ok((mut label, mut color)) = label_query.single_mut() {
+        if let Ok((mut label, mut color)) = speed_up_query.single_mut() {
             label.0 = speed_up_label(&settings);
             color.0 = speed_up_color(&settings);
+        }
+    }
+
+    if keys.just_pressed(KeyCode::KeyC) {
+        settings.dino_color = settings.dino_color.next();
+
+        if let Ok((mut label, mut color)) = dino_color_query.single_mut() {
+            label.0 = dino_color_label(&settings);
+            color.0 = settings.dino_color.swatch();
         }
     }
 
@@ -142,6 +163,10 @@ fn speed_up_label(settings: &GameSettings) -> String {
             "OFF"
         }
     )
+}
+
+fn dino_color_label(settings: &GameSettings) -> String {
+    format!("(C)  Dino color:  {}", settings.dino_color.label())
 }
 
 fn speed_up_color(settings: &GameSettings) -> Color {

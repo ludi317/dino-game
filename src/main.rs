@@ -21,6 +21,7 @@ use crate::systems::obstacles::collision::{debug_outlines, detect_collision};
 use crate::systems::obstacles::movement::{
     drop_obstacles, move_ground_obstacles, move_sky_obstacles, spawn_obstacles,
 };
+use crate::systems::player::color::apply_dino_color;
 use crate::systems::player::health::{check_health, render_health_info, render_score_info};
 use crate::systems::player::movement::{animate_sprite, apply_gravity, change_time_speed, duck, drop_player, jump};
 
@@ -116,7 +117,11 @@ fn main() {
         .add_systems(OnEnter(Settings), spawn_settings)
         .add_systems(OnExit(Settings), despawn_settings)
         .add_systems(Update, settings_input.run_if(in_state(Settings)))
-        .add_systems(OnEnter(InGame), (start_run, show_hud));
+        .add_systems(OnEnter(InGame), (start_run, show_hud))
+        .add_systems(
+            Update,
+            apply_dino_color.run_if(resource_changed::<GameSettings>),
+        );
 
     setup_debug_systems(&mut app);
     app.run();

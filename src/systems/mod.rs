@@ -7,6 +7,7 @@ pub mod game {
 }
 pub mod player {
     pub mod animation;
+    pub mod color;
     pub mod health;
     pub mod movement;
 }

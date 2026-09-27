@@ -1,6 +1,6 @@
 use crate::components::{AnimationIndices, AnimationTimer, Collider, Health, HealthInfo, Player, PlayerCollider, ScoreInfo, Velocity};
 use crate::constants::{DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y, DINO_RUN_SIZE, GROUND_LEVEL, HIT_BOX_SCALE_X, INITIAL_HEALTH, RUN_ANIMATION_TIMER_INTERVAL};
-use crate::resources::{CactusTexture, DinoDuck, DinoDie, DinoJump, DinoRun, HealthPickUpImg, PterodactylDie, PterodactylFly};
+use crate::resources::{CactusTexture, DinoDuck, DinoDie, DinoJump, DinoRun, GameSettings, HealthPickUpImg, PterodactylDie, PterodactylFly};
 use bevy::asset::AssetServer;
 use bevy::image::{TextureAtlas, TextureAtlasLayout};
 use bevy::prelude::*;
@@ -12,10 +12,12 @@ pub fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    settings: Res<GameSettings>,
 ) {
 
     commands.spawn(Camera2d::default());
-    let dino_run = asset_server.load("purple_trex_run.png");
+    let dino_color = settings.dino_color;
+    let dino_run = asset_server.load(dino_color.sprite_path("run"));
     commands.insert_resource(DinoRun(dino_run.clone()));
     commands.insert_resource(HealthPickUpImg(
         asset_server.load("chocolate_icing_chocolate_drizzle.png"),
@@ -27,9 +29,9 @@ pub fn setup(
     commands.insert_resource(PterodactylDie(
         asset_server.load("blue_pterodactyl_die.png"),
     ));
-    commands.insert_resource(DinoDuck(asset_server.load("purple_trex_duck.png")));
-    commands.insert_resource(DinoJump(asset_server.load("purple_trex_jump.png")));
-    commands.insert_resource(DinoDie(asset_server.load("purple_trex_die.png")));
+    commands.insert_resource(DinoDuck(asset_server.load(dino_color.sprite_path("duck"))));
+    commands.insert_resource(DinoJump(asset_server.load(dino_color.sprite_path("jump"))));
+    commands.insert_resource(DinoDie(asset_server.load(dino_color.sprite_path("die"))));
 
     let layout = TextureAtlasLayout::from_grid(
         UVec2::new(DINO_RUN_IMG_SIZE_X, DINO_RUN_IMG_SIZE_Y),

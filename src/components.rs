@@ -29,6 +29,9 @@ pub struct SettingsRoot;
 pub struct SpeedUpSetting;
 
 #[derive(Component)]
+pub struct DinoColorSetting;
+
+#[derive(Component)]
 pub struct Health(pub usize);
 
 #[derive(Component)]
